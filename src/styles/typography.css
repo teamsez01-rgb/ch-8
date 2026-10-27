@@ -1,0 +1,96 @@
+/* Typography System with Inter Font Scale & Hierarchy */
+html {
+  font-family: var(--font-family);
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-family);
+  font-weight: var(--fw-regular);
+  font-size: var(--fs-base);
+  line-height: var(--lh-normal);
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Heading Hierarchy */
+h1, .h1 {
+  font-family: var(--font-family);
+  font-size: var(--fs-4xl);
+  font-weight: var(--fw-extrabold);
+  line-height: var(--lh-tight);
+  letter-spacing: -0.035em;
+  color: var(--text-primary);
+}
+
+h2, .h2 {
+  font-family: var(--font-family);
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-snug);
+  letter-spacing: -0.025em;
+  color: var(--text-primary);
+}
+
+h3, .h3 {
+  font-family: var(--font-family);
+  font-size: var(--fs-xl);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-snug);
+  letter-spacing: -0.015em;
+  color: var(--text-primary);
+}
+
+h4, .h4 {
+  font-family: var(--font-family);
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-normal);
+  color: var(--text-primary);
+}
+
+/* Body & Paragraph Styles */
+p, .body-text {
+  font-family: var(--font-family);
+  font-size: var(--fs-base);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-normal);
+  color: var(--text-secondary);
+}
+
+.body-lead {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-relaxed);
+  color: var(--text-secondary);
+}
+
+.text-small {
+  font-size: var(--fs-sm);
+  line-height: var(--lh-normal);
+}
+
+.text-xs {
+  font-size: var(--fs-xs);
+  line-height: var(--lh-normal);
+}
+
+/* Font Weight Utility Helpers */
+.fw-light { font-weight: var(--fw-light) !important; }
+.fw-regular { font-weight: var(--fw-regular) !important; }
+.fw-medium { font-weight: var(--fw-medium) !important; }
+.fw-semibold { font-weight: var(--fw-semibold) !important; }
+.fw-bold { font-weight: var(--fw-bold) !important; }
+.fw-extrabold { font-weight: var(--fw-extrabold) !important; }
+
+/* Gradient Text Effect */
+.gradient-text {
+  background: var(--accent-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}

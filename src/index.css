@@ -1,0 +1,10 @@
+/* Global Stylesheet Entry Point */
+@import './styles/variables.css';
+@import './styles/typography.css';
+@import './styles/components.css';
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}

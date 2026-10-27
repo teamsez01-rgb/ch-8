@@ -1,0 +1,5 @@
+@keyframes revealChar {
+  to {
+    opacity: 1;
+  }
+}
