@@ -4,6 +4,7 @@ import MathText from '../common/MathText'
 import Example1StepTutor from './Example1StepTutor'
 import Example2Tutor from './Example2Tutor'
 import Example3Tutor from './Example3Tutor'
+import Example4Tutor from './Example4Tutor'
 
 export default function TutorView({ example, onNextExample, onPrevExample, hasPrev = true, hasNext = true }) {
   if (!example) return null
@@ -35,6 +36,18 @@ export default function TutorView({ example, onNextExample, onPrevExample, hasPr
   if (example.id === 'Example 3') {
     return (
       <Example3Tutor
+        example={example}
+        onNextExample={onNextExample}
+        onPrevExample={onPrevExample}
+        hasPrev={hasPrev}
+        hasNext={hasNext}
+      />
+    )
+  }
+
+  if (example.id === 'Example 4') {
+    return (
+      <Example4Tutor
         example={example}
         onNextExample={onNextExample}
         onPrevExample={onPrevExample}
