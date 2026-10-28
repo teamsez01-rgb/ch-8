@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { CheckCircle2, XCircle, HelpCircle, Sparkles, RotateCcw } from 'lucide-react'
 import MathText from '../common/MathText'
 
 /* ─────────── KEYFRAME ANIMATIONS ─────────── */
@@ -20,11 +21,17 @@ const KEYFRAMES = `
     70%  { transform: scale(1.08); opacity: 1; }
     100% { transform: scale(1); opacity: 1; }
   }
+  @keyframes e4Shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-4px); }
+    40%, 80% { transform: translateX(4px); }
+  }
   
   .e4-fade { animation: e4FadeUp 0.35s cubic-bezier(.16,1,.3,1) both; }
   .e4-draw { stroke-dasharray: 400; animation: e4DrawLine 0.75s ease-out both; }
   .e4-glow { animation: e4Glow 1.8s ease-in-out infinite; }
   .e4-pop  { animation: e4Pop 0.4s cubic-bezier(.16,1,.3,1) both; }
+  .e4-shake { animation: e4Shake 0.4s ease-in-out both; }
 
   /* Completely hide all scrollbars */
   *::-webkit-scrollbar {
@@ -130,15 +137,97 @@ const STEPS = [
   }
 ]
 
+/* ─────────── 1-2 LINE CURRENT STEP EXPLANATIONS ─────────── */
+const STEP_EXPLANATIONS = {
+  1: {
+    tag: 'Step 1 of 7 • Construction',
+    heading: 'Draw Right Triangle ABC',
+    line1: 'We construct right-angled $\\triangle ABC$ with $\\angle B = 90^\\circ$.',
+    line2: 'For acute angle $A$, identify $BC$ as opposite, $AB$ as adjacent, and $AC$ as hypotenuse.'
+  },
+  2: {
+    tag: 'Step 2 of 7 • Given Ratio',
+    heading: 'Understand tan A = 1',
+    line1: 'By definition, $\\tan A = \\dfrac{\\text{Opposite}}{\\text{Adjacent}} = \\dfrac{BC}{AB}$.',
+    line2: 'Given $\\tan A = 1$, we get $\\dfrac{BC}{AB} = 1 \\implies BC = AB$ (opposite equals adjacent!).'
+  },
+  3: {
+    tag: 'Step 3 of 7 • Assigning Sides',
+    heading: 'Assign Sides AB = BC = k',
+    line1: 'Since both sides are equal, we let $AB = BC = k$ (where $k > 0$ is a positive constant).',
+    line2: 'This forms an **isosceles right triangle** where $\\angle A = 45^\\circ$.'
+  },
+  4: {
+    tag: 'Step 4 of 7 • Pythagoras',
+    heading: 'Calculate Hypotenuse AC',
+    line1: 'By Pythagoras Theorem: $AC^2 = AB^2 + BC^2 = k^2 + k^2 = 2k^2$.',
+    line2: 'Taking the positive square root gives the hypotenuse $AC = \\sqrt{2}k$.'
+  },
+  5: {
+    tag: 'Step 5 of 7 • Trigonometric Ratios',
+    heading: 'Compute sin A and cos A',
+    line1: '$\\sin A = \\dfrac{\\text{Opposite}}{\\text{Hypotenuse}} = \\dfrac{k}{\\sqrt{2}k} = \\dfrac{1}{\\sqrt{2}}$.',
+    line2: '$\\cos A = \\dfrac{\\text{Adjacent}}{\\text{Hypotenuse}} = \\dfrac{k}{\\sqrt{2}k} = \\dfrac{1}{\\sqrt{2}}$.'
+  },
+  6: {
+    tag: 'Step 6 of 7 • LHS Substitution',
+    heading: 'Substitute into 2 sin A cos A',
+    line1: '$\\text{LHS} = 2 \\times \\left(\\dfrac{1}{\\sqrt{2}}\\right) \\times \\left(\\dfrac{1}{\\sqrt{2}}\\right) = 2 \\times \\dfrac{1}{2} = 1$.',
+    line2: 'The result equals $1$, which exactly matches the $\\text{RHS}$!'
+  },
+  7: {
+    tag: 'Step 7 of 7 • Final Verification',
+    heading: 'Identity Fully Verified',
+    line1: '$\\text{LHS} = \\text{RHS} = 1$. The identity is completely proven!',
+    line2: 'Key Insight: At $\\angle A = 45^\\circ$, $\\sin 45^\\circ = \\cos 45^\\circ = \\dfrac{1}{\\sqrt{2}}$ always satisfies $2 \\sin A \\cos A = 1$.'
+  }
+}
+
+/* ─────────── INTERACTIVE STUDENT CHECKPOINT MCQS ─────────── */
+const INTERACTIVE_QUIZZES = [
+  {
+    id: 'quiz1',
+    relevantSteps: [2, 3],
+    badge: 'Checkpoint 1 (Steps 2–3)',
+    title: 'Ratio & Side Relationship',
+    question: 'If $\\tan A = \\dfrac{BC}{AB} = 1$, what does this tell us about sides $BC$ and $AB$?',
+    options: [
+      { id: 'a', text: '$BC = 2 \\times AB$', correct: false, feedback: 'Not quite! A ratio of 1 means both sides are equal, not doubled.' },
+      { id: 'b', text: '$BC = AB$ (Both legs are equal)', correct: true, feedback: 'Correct! If $\\dfrac{BC}{AB} = 1$, multiplying both sides by $AB$ gives $BC = AB$. This forms an isosceles right triangle!' },
+      { id: 'c', text: '$BC < AB$', correct: false, feedback: 'Incorrect. If $BC < AB$, the ratio $\\dfrac{BC}{AB}$ would be strictly less than 1.' }
+    ]
+  },
+  {
+    id: 'quiz2',
+    relevantSteps: [4, 5],
+    badge: 'Checkpoint 2 (Steps 4–5)',
+    title: 'Hypotenuse & Ratio Value',
+    question: 'In right $\\triangle ABC$ where $AB = k, BC = k$, and $AC = \\sqrt{2}k$, what is $\\sin A$?',
+    options: [
+      { id: 'a', text: '$\\dfrac{1}{2}$', correct: false, feedback: 'Remember: $\\sin A = \\dfrac{\\text{Opposite}}{\\text{Hypotenuse}} = \\dfrac{k}{\\sqrt{2}k}$.' },
+      { id: 'b', text: '$\\dfrac{1}{\\sqrt{2}}$', correct: true, feedback: 'Spot on! $\\sin A = \\dfrac{BC}{AC} = \\dfrac{k}{\\sqrt{2}k} = \\dfrac{1}{\\sqrt{2}}$!' },
+      { id: 'c', text: '$\\sqrt{2}$', correct: false, feedback: 'Hypotenuse is in the denominator, so it must be $\\dfrac{1}{\\sqrt{2}}$, not $\\sqrt{2}$.' }
+    ]
+  },
+  {
+    id: 'quiz3',
+    relevantSteps: [6, 7],
+    badge: 'Checkpoint 3 (Steps 6–7)',
+    title: 'Verification Calculation',
+    question: 'What is the evaluated value of $2 \\times \\left(\\dfrac{1}{\\sqrt{2}}\\right) \\times \\left(\\dfrac{1}{\\sqrt{2}}\\right)$?',
+    options: [
+      { id: 'a', text: '$2 \\times \\dfrac{1}{4} = \\dfrac{1}{2}$', correct: false, feedback: 'Check the denominator: $\\sqrt{2} \\times \\sqrt{2} = 2$, not $4$!' },
+      { id: 'b', text: '$2 \\times \\dfrac{1}{2} = 1$ (Matches RHS!)', correct: true, feedback: 'Brilliant! Since $\\sqrt{2} \\times \\sqrt{2} = 2$, we get $2 \\times \\dfrac{1}{2} = 1 = \\text{RHS}$!' },
+      { id: 'c', text: '$2$', correct: false, feedback: 'Remember to multiply the fractions first: $\\dfrac{1}{\\sqrt{2}} \\times \\dfrac{1}{\\sqrt{2}} = \\dfrac{1}{2}$.' }
+    ]
+  }
+]
+
 /* ─────────── SVG TRIANGLE COORDINATES (Spacious & Clean) ─────────── */
-// Vertex A (bottom-left): (75, 185)
-// Vertex B (bottom-right 90°): (245, 185) -> Base AB = 170px
-// Vertex C (top-right): (245, 35) -> Perpendicular BC = 150px
 const Ax = 75, Ay = 185
 const Bx = 245, By = 185
 const Cx = 245, Cy = 35
 
-// Hypotenuse label position and angle
 const HYP_ANGLE = -41
 const HypLabelX = 152
 const HypLabelY = 104
@@ -394,8 +483,24 @@ export default function Example4Tutor({ onNextExample, onPrevExample, hasPrev = 
   const clickTimer = useRef(null)
   const scrollContainerRef = useRef(null)
 
+  // Interactive Student Quiz State
+  const [selectedOptions, setSelectedOptions] = useState({}) // { quizId: optionId }
+  const [activeQuizIndex, setActiveQuizIndex] = useState(0)
+
   const currentStepObj = STEPS[step - 1] || STEPS[0]
   const currentTotalLines = currentStepObj.mathLines.length
+  const currentExplanation = STEP_EXPLANATIONS[step] || STEP_EXPLANATIONS[1]
+
+  // Automatically sync active quiz with current step stage
+  useEffect(() => {
+    if (step <= 3) {
+      setActiveQuizIndex(0)
+    } else if (step <= 5) {
+      setActiveQuizIndex(1)
+    } else {
+      setActiveQuizIndex(2)
+    }
+  }, [step])
 
   // Keyboard navigation: Left / Right arrow keys
   useEffect(() => {
@@ -467,6 +572,10 @@ export default function Example4Tutor({ onNextExample, onPrevExample, hasPrev = 
       }, 250)
     }
   }
+
+  const currentQuiz = INTERACTIVE_QUIZZES[activeQuizIndex] || INTERACTIVE_QUIZZES[0]
+  const userChoiceId = selectedOptions[currentQuiz.id]
+  const chosenOption = currentQuiz.options.find(o => o.id === userChoiceId)
 
   return (
     <div
@@ -603,65 +712,318 @@ export default function Example4Tutor({ onNextExample, onPrevExample, hasPrev = 
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════
-          PART 2 (RIGHT PANE): QUESTION DISPLAY & TARGETS
+          PART 2 (RIGHT PANE): INTERACTIVE EXPLANATION & STUDENT CHECKPOINTS
           ══════════════════════════════════════════════════════════════════ */}
       <div
         className="right-pane"
         style={{
           flex: 0.85,
-          padding: '2.5rem 3rem',
+          padding: '2.2rem 2.6rem',
           display: 'flex',
           flexDirection: 'column',
-          gap: '1.5rem',
+          gap: '1.25rem',
           overflowY: 'auto',
           background: '#ffffff',
           fontFamily: '"Inter", "Segoe UI", system-ui, -apple-system, sans-serif'
         }}
       >
         {/* Main Question Display */}
-        <div style={{ margin: 0, fontSize: '1.32rem', lineHeight: '1.7', color: '#0f172a', fontWeight: '600' }}>
+        <div style={{ margin: 0, fontSize: '1.28rem', lineHeight: '1.7', color: '#0f172a', fontWeight: '600' }}>
           <span style={{ color: '#0284c7', fontWeight: '800', marginRight: '10px' }}>
             Example 4 :
           </span>
           <MathText text={'In a right triangle $ABC$, right-angled at $B$, if $\\tan A = 1$, then verify that $2 \\sin A \\cos A = 1$.'} />
         </div>
 
-        {/* Given Information Card */}
-        <div style={{
-          background: '#f8fafc',
-          border: '1px solid #e2e8f0',
-          borderRadius: '16px',
-          padding: '1.25rem 1.5rem',
-          marginTop: '0.5rem'
-        }}>
+        {/* 1. DYNAMIC LIVE STEP ACTION CARD (Explains What is Happening Right Now) */}
+        <div
+          key={`step-expl-${step}`}
+          className="e4-fade"
+          style={{
+            background: 'linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%)',
+            border: '1.5px solid #86efac',
+            borderRadius: '16px',
+            padding: '1.15rem 1.4rem',
+            boxShadow: '0 2px 10px rgba(16, 185, 129, 0.06)'
+          }}
+        >
           <div style={{
-            fontSize: '0.85rem',
-            fontWeight: '800',
-            textTransform: 'uppercase',
-            letterSpacing: '0.05em',
-            color: '#64748b',
-            marginBottom: '0.75rem'
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            marginBottom: '0.45rem'
           }}>
-            Given in Problem
+            <span style={{
+              fontSize: '0.78rem',
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              letterSpacing: '0.06em',
+              color: '#15803d',
+              background: '#dcfce7',
+              padding: '2px 10px',
+              borderRadius: '6px'
+            }}>
+              {currentExplanation.tag}
+            </span>
+            <span style={{
+              fontSize: '0.82rem',
+              fontWeight: 700,
+              color: '#059669'
+            }}>
+              Active Step
+            </span>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '1.1rem', color: '#0f172a' }}>
-            <div>• <MathText text={'$\\text{Right triangle } \\triangle ABC, \\quad \\angle B = 90^\\circ$'} /></div>
-            <div>• <MathText text={'$\\tan A = 1 \\implies \\dfrac{BC}{AB} = 1 \\implies BC = AB = k$'} /></div>
-            <div>• <MathText text={'$\\text{Target : Verify that } 2 \\sin A \\cos A = 1$'} /></div>
+
+          <div style={{
+            fontSize: '1.08rem',
+            fontWeight: 800,
+            color: '#0f172a',
+            marginBottom: '0.35rem'
+          }}>
+            {currentExplanation.heading}
+          </div>
+
+          <div style={{
+            fontSize: '0.94rem',
+            color: '#334155',
+            lineHeight: 1.65,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.25rem'
+          }}>
+            <div>• <MathText text={currentExplanation.line1} /></div>
+            <div>• <MathText text={currentExplanation.line2} /></div>
           </div>
         </div>
 
-        {/* Verification Target Card */}
+        {/* 2. INTERACTIVE STUDENT CHECKPOINT (MCQ QUIZ CARD) */}
+        <div
+          data-noclick="true"
+          style={{
+            background: '#ffffff',
+            border: chosenOption?.correct ? '1.5px solid #10b981' : (chosenOption ? '1.5px solid #f59e0b' : '1.5px solid #e2e8f0'),
+            borderRadius: '16px',
+            padding: '1.25rem 1.4rem',
+            boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04)',
+            transition: 'all 0.25s ease'
+          }}
+        >
+          {/* Quiz Header & Tabs */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            marginBottom: '0.85rem'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{
+                background: '#eff6ff',
+                color: '#1d4ed8',
+                borderRadius: '8px',
+                padding: '4px 10px',
+                fontSize: '0.78rem',
+                fontWeight: 800,
+                letterSpacing: '0.04em',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '5px'
+              }}>
+                <Sparkles size={13} />
+                Student Checkpoint
+              </span>
+            </div>
+
+            {/* Checkpoint selector pills */}
+            <div style={{ display: 'flex', gap: '4px' }}>
+              {INTERACTIVE_QUIZZES.map((q, qIdx) => {
+                const isSelected = activeQuizIndex === qIdx
+                const isDone = selectedOptions[q.id]
+                return (
+                  <button
+                    key={q.id}
+                    onClick={() => setActiveQuizIndex(qIdx)}
+                    style={{
+                      border: 'none',
+                      background: isSelected ? '#0284c7' : (isDone ? '#e0f2fe' : '#f1f5f9'),
+                      color: isSelected ? '#ffffff' : (isDone ? '#0284c7' : '#64748b'),
+                      fontWeight: 700,
+                      fontSize: '0.74rem',
+                      padding: '3px 8px',
+                      borderRadius: '10px',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease'
+                    }}
+                  >
+                    Q{qIdx + 1}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Question Text */}
+          <div style={{
+            fontSize: '1.02rem',
+            fontWeight: 700,
+            color: '#0f172a',
+            lineHeight: 1.6,
+            marginBottom: '0.9rem'
+          }}>
+            <MathText text={currentQuiz.question} />
+          </div>
+
+          {/* MCQ Options List */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+            {currentQuiz.options.map((opt) => {
+              const isChosen = userChoiceId === opt.id
+              const isCorrect = opt.correct
+
+              let btnBorder = '1px solid #e2e8f0'
+              let btnBg = '#f8fafc'
+              let btnColor = '#1e293b'
+
+              if (isChosen) {
+                if (isCorrect) {
+                  btnBorder = '1.5px solid #10b981'
+                  btnBg = '#ecfdf5'
+                  btnColor = '#065f46'
+                } else {
+                  btnBorder = '1.5px solid #f43f5e'
+                  btnBg = '#fff1f2'
+                  btnColor = '#9f1239'
+                }
+              }
+
+              return (
+                <button
+                  key={opt.id}
+                  onClick={() => {
+                    setSelectedOptions(prev => ({ ...prev, [currentQuiz.id]: opt.id }))
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '0.65rem 0.95rem',
+                    borderRadius: '12px',
+                    border: btnBorder,
+                    background: btnBg,
+                    color: btnColor,
+                    cursor: 'pointer',
+                    fontSize: '0.95rem',
+                    fontWeight: isChosen ? 700 : 500,
+                    textAlign: 'left',
+                    fontFamily: 'Inter',
+                    transition: 'all 0.18s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isChosen) {
+                      e.currentTarget.style.background = '#f1f5f9'
+                      e.currentTarget.style.borderColor = '#cbd5e1'
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isChosen) {
+                      e.currentTarget.style.background = '#f8fafc'
+                      e.currentTarget.style.borderColor = '#e2e8f0'
+                    }
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{
+                      width: '22px',
+                      height: '22px',
+                      borderRadius: '50%',
+                      background: isChosen ? (isCorrect ? '#10b981' : '#f43f5e') : '#e2e8f0',
+                      color: isChosen ? '#ffffff' : '#64748b',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '0.78rem',
+                      fontWeight: 800,
+                      flexShrink: 0
+                    }}>
+                      {opt.id.toUpperCase()}
+                    </span>
+                    <MathText text={opt.text} />
+                  </div>
+
+                  {isChosen && (
+                    isCorrect ? <CheckCircle2 size={18} color="#10b981" /> : <XCircle size={18} color="#f43f5e" />
+                  )}
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Interactive Feedback Box */}
+          {chosenOption && (
+            <div
+              className="e4-pop"
+              style={{
+                marginTop: '0.85rem',
+                padding: '0.75rem 1rem',
+                borderRadius: '12px',
+                background: chosenOption.correct ? '#ecfdf5' : '#fffbeb',
+                border: chosenOption.correct ? '1px solid #a7f3d0' : '1px solid #fef3c7',
+                fontSize: '0.88rem',
+                color: chosenOption.correct ? '#065f46' : '#92400e',
+                lineHeight: 1.55,
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'space-between',
+                gap: '8px'
+              }}
+            >
+              <div>
+                <strong>{chosenOption.correct ? '🎉 Correct Answer!' : '💡 Think About It:'}</strong>{' '}
+                <MathText text={chosenOption.feedback} />
+              </div>
+
+              {!chosenOption.correct && (
+                <button
+                  onClick={() => {
+                    setSelectedOptions(prev => {
+                      const updated = { ...prev }
+                      delete updated[currentQuiz.id]
+                      return updated
+                    })
+                  }}
+                  title="Try Again"
+                  style={{
+                    border: 'none',
+                    background: '#fef3c7',
+                    color: '#b45309',
+                    padding: '3px',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    flexShrink: 0
+                  }}
+                >
+                  <RotateCcw size={12} />
+                  Reset
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* 3. VERIFICATION TARGET CARD */}
         <div style={{
           background: step >= 6 ? '#ecfdf5' : '#f8fafc',
           border: step >= 6 ? '1.5px solid #10b981' : '1px solid #e2e8f0',
           borderRadius: '16px',
-          padding: '1.25rem 1.5rem',
+          padding: '1.15rem 1.4rem',
           transition: 'all 0.3s ease'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.6rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
             <span style={{
-              fontSize: '0.88rem',
+              fontSize: '0.84rem',
               fontWeight: '800',
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
@@ -670,7 +1032,7 @@ export default function Example4Tutor({ onNextExample, onPrevExample, hasPrev = 
               Verification Target
             </span>
             <span style={{
-              fontSize: '0.82rem',
+              fontSize: '0.8rem',
               fontWeight: 800,
               background: step >= 6 ? '#d1fae5' : '#e2e8f0',
               color: step >= 6 ? '#065f46' : '#475569',
@@ -681,36 +1043,38 @@ export default function Example4Tutor({ onNextExample, onPrevExample, hasPrev = 
             </span>
           </div>
 
-          <div style={{ fontSize: '1.24rem', fontWeight: 600, color: '#0f172a', marginBottom: '0.5rem' }}>
+          <div style={{ fontSize: '1.24rem', fontWeight: 600, color: '#0f172a', marginBottom: '0.4rem' }}>
             <MathText text={'$2 \\sin A \\cos A = 1$'} />
           </div>
 
-          <div style={{ fontSize: '0.92rem', color: '#64748b', lineHeight: 1.6 }}>
-            {step < 5 && 'Step 1-4: Find side lengths and hypotenuse first.'}
-            {step === 5 && 'Step 5: sin A = 1/√2 and cos A = 1/√2 calculated!'}
-            {step >= 6 && 'Step 6-7: 2 × (1/√2) × (1/√2) = 2 × (1/2) = 1 (LHS = RHS)!'}
+          <div style={{ fontSize: '0.9rem', color: '#64748b', lineHeight: 1.55 }}>
+            {step < 5 && 'Steps 1–4: Find side lengths and hypotenuse first.'}
+            {step === 5 && 'Step 5: $\\sin A = 1/\\sqrt{2}$ and $\\cos A = 1/\\sqrt{2}$ computed!'}
+            {step >= 6 && 'Steps 6–7: $2 \\times (1/\\sqrt{2}) \\times (1/\\sqrt{2}) = 2 \\times (1/2) = 1$ (LHS = RHS)!'}
           </div>
         </div>
 
-        {/* Key Non-Maths Intuition Card */}
+        {/* 4. GIVEN INFORMATION SUMMARY CARD */}
         <div style={{
-          background: '#fffbeb',
-          border: '1px solid #fef3c7',
+          background: '#f8fafc',
+          border: '1px solid #e2e8f0',
           borderRadius: '14px',
-          padding: '1.1rem 1.4rem'
+          padding: '1rem 1.3rem'
         }}>
           <div style={{
-            fontSize: '0.82rem',
+            fontSize: '0.8rem',
             fontWeight: '800',
             textTransform: 'uppercase',
             letterSpacing: '0.05em',
-            color: '#b45309',
-            marginBottom: '0.35rem'
+            color: '#64748b',
+            marginBottom: '0.5rem'
           }}>
-            💡 Intuition for Students
+            Given in Problem
           </div>
-          <div style={{ fontSize: '0.94rem', color: '#78350f', lineHeight: 1.6 }}>
-            Whenever <MathText text={'$\\tan A = 1$'} />, the opposite and adjacent sides are completely equal! That means the right triangle is an <strong>isosceles right triangle</strong> and <MathText text={'$\\angle A = 45^\\circ$'} />.
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.95rem', color: '#0f172a' }}>
+            <div>• <MathText text={'$\\text{Right triangle } \\triangle ABC, \\quad \\angle B = 90^\\circ$'} /></div>
+            <div>• <MathText text={'$\\tan A = 1 \\implies \\dfrac{BC}{AB} = 1 \\implies BC = AB = k$'} /></div>
+            <div>• <MathText text={'$\\text{Target : Verify that } 2 \\sin A \\cos A = 1$'} /></div>
           </div>
         </div>
       </div>
