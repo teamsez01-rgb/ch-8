@@ -12,15 +12,24 @@
   --fw-extrabold: 800;
 
   /* Typography Modular Scale */
-  --fs-xs: 0.75rem;      /* 12px - Badges, Pills, Tooltips, Captions */
-  --fs-sm: 0.875rem;     /* 14px - Subtitles, Nav Links, Table cells */
-  --fs-base: 1rem;       /* 16px - Standard Body text */
-  --fs-md: 1.125rem;     /* 18px - Lead paragraphs, Input controls */
-  --fs-lg: 1.25rem;      /* 20px - Card Titles, Section Subheadings */
-  --fs-xl: 1.5rem;       /* 24px - Subsection / Modal Titles */
-  --fs-2xl: 1.875rem;    /* 30px - Section Headings */
-  --fs-3xl: 2.25rem;     /* 36px - Page Headings */
-  --fs-4xl: 3rem;        /* 48px - Main Hero Display */
+  --fs-xs: 0.75rem;
+  /* 12px - Badges, Pills, Tooltips, Captions */
+  --fs-sm: 0.875rem;
+  /* 14px - Subtitles, Nav Links, Table cells */
+  --fs-base: 1rem;
+  /* 16px - Standard Body text */
+  --fs-md: 1.125rem;
+  /* 18px - Lead paragraphs, Input controls */
+  --fs-lg: 1.25rem;
+  /* 20px - Card Titles, Section Subheadings */
+  --fs-xl: 1.5rem;
+  /* 24px - Subsection / Modal Titles */
+  --fs-2xl: 1.875rem;
+  /* 30px - Section Headings */
+  --fs-3xl: 2.25rem;
+  /* 36px - Page Headings */
+  --fs-4xl: 3rem;
+  /* 48px - Main Hero Display */
 
   /* Line Heights */
   --lh-tight: 1.15;
@@ -43,10 +52,14 @@
   --border-highlight: #818cf8;
 
   /* High Contrast Clean Typography Colors */
-  --text-primary: #0f172a;      /* Rich dark slate for crisp text reading */
-  --text-secondary: #475569;    /* Refined slate for subtitles and body */
-  --text-muted: #94a3b8;        /* Soft slate for hints and meta info */
-  --text-accent: #2563eb;       /* Royal Blue for highlighted keywords */
+  --text-primary: #0f172a;
+  /* Rich dark slate for crisp text reading */
+  --text-secondary: #475569;
+  /* Refined slate for subtitles and body */
+  --text-muted: #94a3b8;
+  /* Soft slate for hints and meta info */
+  --text-accent: #2563eb;
+  /* Royal Blue for highlighted keywords */
 
   /* Brand Accents & Gradients */
   --accent-primary: #4f46e5;

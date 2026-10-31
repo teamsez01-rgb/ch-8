@@ -1,7 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react'
+import { motion } from 'framer-motion'
+import confetti from 'canvas-confetti'
 import {
-  ArrowLeft,
-  ChevronRight
+  Check,
+  CheckCircle2,
+  XCircle,
+  RotateCcw
 } from 'lucide-react'
 import MathText from '../common/MathText'
 
@@ -12,8 +16,8 @@ const KEYFRAMES = `
     to   { stroke-dashoffset: 0; }
   }
   @keyframes e1FadeUp {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; }
+    to   { opacity: 1; }
   }
   @keyframes e1Glow {
     0%, 100% { opacity: 0.18; }
@@ -29,10 +33,74 @@ const KEYFRAMES = `
     100% { transform: scale(1); opacity: 1; }
   }
   
+  @keyframes e1Typewriter {
+    0% {
+      clip-path: inset(0 100% 0 0);
+      opacity: 0.2;
+    }
+    10% {
+      opacity: 1;
+    }
+    100% {
+      clip-path: inset(0 0 0 0);
+      opacity: 1;
+    }
+  }
   .e1-fade { animation: e1FadeUp 0.35s cubic-bezier(.16,1,.3,1) both; }
   .e1-draw { stroke-dasharray: 400; animation: e1DrawLine 0.75s ease-out both; }
   .e1-glow { animation: e1Glow 1.8s ease-in-out infinite; }
   .e1-pop  { animation: e1Pop 0.4s cubic-bezier(.16,1,.3,1) both; }
+  .e1-typewriter {
+    display: inline-block;
+    white-space: nowrap;
+    animation: e1Typewriter 0.85s steps(42, end) both;
+  }
+  .e1-math-line {
+    white-space: nowrap !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-wrap: nowrap !important;
+  }
+  .e1-math-line,
+  .e1-math-line *,
+  .e1-math-line .katex,
+  .e1-math-line .katex .text,
+  .e1-math-line .katex-html,
+  .e1-math-line .katex-base,
+  .e1-math-line .math-formula-span,
+  .e1-math-line .math-rendered-text {
+    white-space: nowrap !important;
+    word-break: keep-all !important;
+    overflow-wrap: normal !important;
+    text-wrap: nowrap !important;
+    flex-wrap: nowrap !important;
+  }
+  .e1-math-line .katex-html {
+    display: inline-flex !important;
+    flex-wrap: nowrap !important;
+    align-items: baseline !important;
+    white-space: nowrap !important;
+  }
+
+  .left-pane,
+  .left-pane *,
+  .right-pane,
+  .right-pane * {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  }
+  .left-pane .katex,
+  .right-pane .katex,
+  .e1-math-line .katex {
+    color: #0f172a !important;
+    font-weight: 500;
+  }
+  .left-pane .katex .text,
+  .right-pane .katex .text {
+    font-family: 'Inter', sans-serif !important;
+    font-weight: 400 !important;
+    color: #0f172a !important;
+  }
 
   /* Completely hide all scrollbars */
   *::-webkit-scrollbar {
@@ -57,8 +125,10 @@ const STEPS = [
     title: 'Draw Right Triangle ABC',
     diagramType: 'construct',
     mathLines: [
-      '\\text{Consider a right-angled } \\triangle ABC \\text{ in which } \\angle B = 90^\\circ',
-      '\\text{For acute } \\angle A : \\text{Opposite side} = BC, \\; \\text{Adjacent side} = AB, \\; \\text{Hypotenuse} = AC'
+      '\\text{Consider right-angled } \\triangle ABC \\text{ with right angle at } B \\ (\\angle B = 90^\\circ)',
+      '\\mathbf{\\textcolor{#059669}{\\text{Side } BC \\text{ is Opposite}}} \\text{ (side opposite to acute } \\angle A)',
+      '\\mathbf{\\textcolor{#0284c7}{\\text{Side } AB \\text{ is Adjacent}}} \\text{ (side adjacent to acute } \\angle A)',
+      '\\mathbf{\\textcolor{#d97706}{\\text{Side } AC \\text{ is Hypotenuse}}} \\text{ (longest side, opposite to } 90^\\circ)'
     ]
   },
   {
@@ -70,35 +140,45 @@ const STEPS = [
     title: 'Given tan A = 4/3',
     diagramType: 'given',
     mathLines: [
-      '\\tan A = \\dfrac{\\text{Side opposite to } \\angle A}{\\text{Side adjacent to } \\angle A} = \\dfrac{BC}{AB}',
-      '\\text{Given : } \\tan A = \\dfrac{4}{3} \\implies \\dfrac{BC}{AB} = \\dfrac{4}{3}'
+      '\\tan A = \\dfrac{\\text{Side opposite to } \\angle A}{\\text{Side adjacent to } \\angle A}',
+      '\\text{Side opposite to } \\angle A~=~\\mathbf{\\textcolor{#059669}{BC}}',
+      '\\text{Side adjacent to } \\angle A~=~\\mathbf{\\textcolor{#0284c7}{AB}}',
+      '\\tan A = \\dfrac{\\mathbf{\\textcolor{#059669}{BC}}}{\\mathbf{\\textcolor{#0284c7}{AB}}}',
+      '\\text{Given in Question : } \\tan A = \\dfrac{4}{3}',
+      '\\dfrac{\\mathbf{\\textcolor{#059669}{BC}}}{\\mathbf{\\textcolor{#0284c7}{AB}}} = \\dfrac{4}{3}'
     ]
   },
   {
     id: 3,
     label: 'Step 3',
-    badge: 'Side Lengths',
+    badge: 'Side Lengths with k',
     badgeColor: '#92400e',
     badgeBg: '#fef3c7',
-    title: 'Assign Sides in Terms of k',
+    title: 'Assign Side Lengths with Constant k',
     diagramType: 'assignK',
     mathLines: [
-      '\\dfrac{BC}{AB} = \\dfrac{4}{3}',
-      'BC = 4k, \\quad AB = 3k \\quad (\\text{where } k > 0 \\text{ is a positive constant})'
+      '\\dfrac{\\mathbf{\\textcolor{#059669}{BC}}}{\\mathbf{\\textcolor{#0284c7}{AB}}} = \\dfrac{4}{3}',
+      '\\text{Let } k > 0 \\text{ be a positive proportionality constant}',
+      '\\mathbf{\\textcolor{#059669}{BC = 4k}}',
+      '\\mathbf{\\textcolor{#0284c7}{AB = 3k}}'
     ]
   },
   {
     id: 4,
     label: 'Step 4',
-    badge: 'Pythagoras',
+    badge: 'Pythagoras Theorem',
     badgeColor: '#5b21b6',
     badgeBg: '#ede9fe',
-    title: 'Find Hypotenuse AC',
+    title: 'Find Missing Hypotenuse AC (Pythagoras)',
     diagramType: 'pythagoras',
     mathLines: [
-      '\\text{By Pythagoras Theorem in } \\triangle ABC : AC^2 = AB^2 + BC^2',
-      'AC^2 = (3k)^2 + (4k)^2 = 9k^2 + 16k^2 = 25k^2',
-      'AC = \\sqrt{25k^2} = 5k'
+      '\\text{By Pythagoras Theorem in right } \\triangle ABC :',
+      '\\mathbf{\\textcolor{#d97706}{AC^2}} = \\mathbf{\\textcolor{#0284c7}{AB^2}} + \\mathbf{\\textcolor{#059669}{BC^2}}',
+      '\\mathbf{\\textcolor{#d97706}{AC^2}} = (3k)^2 + (4k)^2',
+      '\\mathbf{\\textcolor{#d97706}{AC^2}} = 9k^2 + 16k^2',
+      '\\mathbf{\\textcolor{#d97706}{AC^2}} = 25k^2',
+      '\\mathbf{\\textcolor{#d97706}{AC}} = \\sqrt{25k^2}',
+      '\\mathbf{\\textcolor{#d97706}{AC = 5k}}'
     ]
   },
   {
@@ -107,13 +187,16 @@ const STEPS = [
     badge: 'sin A',
     badgeColor: '#0369a1',
     badgeBg: '#e0f2fe',
-    title: 'Find sin A',
+    title: 'Calculate sin A',
     diagramType: 'ratio',
     ratioName: 'sin',
     mathLines: [
-      '\\sin A = \\dfrac{\\text{Side opposite to } \\angle A}{\\text{Hypotenuse}} = \\dfrac{BC}{AC}',
+      '\\sin A = \\dfrac{\\text{Side opposite to } \\angle A}{\\text{Hypotenuse}}',
+      '\\text{Side opposite to } \\angle A~=~\\mathbf{\\textcolor{#059669}{BC}}',
+      '\\text{Hypotenuse}~=~\\mathbf{\\textcolor{#d97706}{AC}}',
+      '\\sin A = \\dfrac{\\mathbf{\\textcolor{#059669}{BC}}}{\\mathbf{\\textcolor{#d97706}{AC}}}',
       '\\sin A = \\dfrac{4k}{5k}',
-      '\\sin A = \\dfrac{4}{5}'
+      '\\mathbf{\\textcolor{#0284c7}{\\sin A = \\dfrac{4}{5}}}'
     ]
   },
   {
@@ -122,13 +205,16 @@ const STEPS = [
     badge: 'cos A',
     badgeColor: '#047857',
     badgeBg: '#d1fae5',
-    title: 'Find cos A',
+    title: 'Calculate cos A',
     diagramType: 'ratio',
     ratioName: 'cos',
     mathLines: [
-      '\\cos A = \\dfrac{\\text{Side adjacent to } \\angle A}{\\text{Hypotenuse}} = \\dfrac{AB}{AC}',
+      '\\cos A = \\dfrac{\\text{Side adjacent to } \\angle A}{\\text{Hypotenuse}}',
+      '\\text{Side adjacent to } \\angle A~=~\\mathbf{\\textcolor{#0284c7}{AB}}',
+      '\\text{Hypotenuse}~=~\\mathbf{\\textcolor{#d97706}{AC}}',
+      '\\cos A = \\dfrac{\\mathbf{\\textcolor{#0284c7}{AB}}}{\\mathbf{\\textcolor{#d97706}{AC}}}',
       '\\cos A = \\dfrac{3k}{5k}',
-      '\\cos A = \\dfrac{3}{5}'
+      '\\mathbf{\\textcolor{#047857}{\\cos A = \\dfrac{3}{5}}}'
     ]
   },
   {
@@ -137,12 +223,16 @@ const STEPS = [
     badge: 'cot A',
     badgeColor: '#9d174d',
     badgeBg: '#fce7f3',
-    title: 'Find cot A',
+    title: 'Calculate cot A (Reciprocal of tan A)',
     diagramType: 'ratio',
     ratioName: 'cot',
     mathLines: [
-      '\\cot A = \\dfrac{1}{\\tan A} = \\dfrac{\\text{Side adjacent to } \\angle A}{\\text{Side opposite to } \\angle A} = \\dfrac{AB}{BC}',
-      '\\cot A = \\dfrac{3k}{4k} = \\dfrac{3}{4}'
+      '\\cot A = \\dfrac{\\text{Side adjacent to } \\angle A}{\\text{Side opposite to } \\angle A}',
+      '\\text{Side adjacent to } \\angle A~=~\\mathbf{\\textcolor{#0284c7}{AB}}',
+      '\\text{Side opposite to } \\angle A~=~\\mathbf{\\textcolor{#059669}{BC}}',
+      '\\cot A = \\dfrac{\\mathbf{\\textcolor{#0284c7}{AB}}}{\\mathbf{\\textcolor{#059669}{BC}}}',
+      '\\cot A = \\dfrac{3k}{4k}',
+      '\\mathbf{\\textcolor{#9d174d}{\\cot A = \\dfrac{3}{4}}}'
     ]
   },
   {
@@ -151,12 +241,16 @@ const STEPS = [
     badge: 'cosec A',
     badgeColor: '#6d28d9',
     badgeBg: '#ede9fe',
-    title: 'Find cosec A',
+    title: 'Calculate cosec A (Reciprocal of sin A)',
     diagramType: 'ratio',
     ratioName: 'cosec',
     mathLines: [
-      '\\operatorname{cosec} A = \\dfrac{1}{\\sin A} = \\dfrac{\\text{Hypotenuse}}{\\text{Side opposite to } \\angle A} = \\dfrac{AC}{BC}',
-      '\\operatorname{cosec} A = \\dfrac{5k}{4k} = \\dfrac{5}{4}'
+      '\\operatorname{cosec} A = \\dfrac{\\text{Hypotenuse}}{\\text{Side opposite to } \\angle A}',
+      '\\text{Hypotenuse}~=~\\mathbf{\\textcolor{#d97706}{AC}}',
+      '\\text{Side opposite to } \\angle A~=~\\mathbf{\\textcolor{#059669}{BC}}',
+      '\\operatorname{cosec} A = \\dfrac{\\mathbf{\\textcolor{#d97706}{AC}}}{\\mathbf{\\textcolor{#059669}{BC}}}',
+      '\\operatorname{cosec} A = \\dfrac{5k}{4k}',
+      '\\mathbf{\\textcolor{#6d28d9}{\\operatorname{cosec} A = \\dfrac{5}{4}}}'
     ]
   },
   {
@@ -165,29 +259,108 @@ const STEPS = [
     badge: 'sec A',
     badgeColor: '#be123c',
     badgeBg: '#ffe4e6',
-    title: 'Find sec A',
+    title: 'Calculate sec A (Reciprocal of cos A)',
     diagramType: 'ratio',
     ratioName: 'sec',
     mathLines: [
-      '\\sec A = \\dfrac{1}{\\cos A} = \\dfrac{\\text{Hypotenuse}}{\\text{Side adjacent to } \\angle A} = \\dfrac{AC}{AB}',
+      '\\sec A = \\dfrac{\\text{Hypotenuse}}{\\text{Side adjacent to } \\angle A}',
+      '\\text{Hypotenuse}~=~\\mathbf{\\textcolor{#d97706}{AC}}',
+      '\\text{Side adjacent to } \\angle A~=~\\mathbf{\\textcolor{#0284c7}{AB}}',
+      '\\sec A = \\dfrac{\\mathbf{\\textcolor{#d97706}{AC}}}{\\mathbf{\\textcolor{#0284c7}{AB}}}',
       '\\sec A = \\dfrac{5k}{3k}',
-      '\\sec A = \\dfrac{5}{3}'
+      '\\mathbf{\\textcolor{#be123c}{\\sec A = \\dfrac{5}{3}}}'
     ]
   },
   {
     id: 10,
     label: 'Step 10',
-    badge: 'All Ratios',
+    badge: 'All 6 Ratios',
     badgeColor: '#15803d',
     badgeBg: '#dcfce7',
-    title: 'All Trigonometric Ratios of Angle A',
+    title: 'Summary of All 6 Trigonometric Ratios',
     diagramType: 'summary',
     mathLines: [
-      '\\sin A = \\dfrac{4}{5}, \\quad \\cos A = \\dfrac{3}{5}, \\quad \\tan A = \\dfrac{4}{3}',
-      '\\cot A = \\dfrac{3}{4}, \\quad \\operatorname{cosec} A = \\dfrac{5}{4}, \\quad \\sec A = \\dfrac{5}{3}'
+      '\\mathbf{\\textcolor{#0284c7}{\\sin A = \\dfrac{4}{5}}} \\qquad \\longleftrightarrow \\qquad \\mathbf{\\textcolor{#6d28d9}{\\operatorname{cosec} A = \\dfrac{5}{4}}}',
+      '\\mathbf{\\textcolor{#047857}{\\cos A = \\dfrac{3}{5}}} \\qquad \\longleftrightarrow \\qquad \\mathbf{\\textcolor{#be123c}{\\sec A = \\dfrac{5}{3}}}',
+      '\\mathbf{\\textcolor{#0369a1}{\\tan A = \\dfrac{4}{3}}} \\qquad \\longleftrightarrow \\qquad \\mathbf{\\textcolor{#9d174d}{\\cot A = \\dfrac{3}{4}}}'
     ]
   }
 ]
+
+/* ─────────── STEP-BY-STEP CONCISE DETAILS FOR EXAMPLE 1 ─────────── */
+const STEP_DETAILS_EX1 = {
+  1: {
+    title: 'Draw Right Triangle ABC',
+    summary: 'Draw right $\\triangle ABC$ at $B$, with acute angle $\\angle A$.',
+    quiz: null
+  },
+  2: {
+    title: 'Given tan A = 4/3',
+    summary: '$\\tan A = \\dfrac{\\text{Opposite}}{\\text{Adjacent}} = \\dfrac{BC}{AB} = \\dfrac{4}{3}$.',
+    quiz: null
+  },
+  3: {
+    title: 'Assign Sides with k',
+    summary: 'Let $BC = 4k$ and $AB = 3k$ (where $k > 0$).',
+    promptSummary: 'Given ratio: $\\tan A = \\dfrac{BC}{AB} = \\dfrac{4}{3}$.',
+    quiz: {
+      question: 'Why do we introduce constant $k$?',
+      options: [
+        { id: 'a', text: '$\\dfrac{4}{3}$ is a ratio, so lengths are multiples $4k$ and $3k$', correct: true, feedback: 'Correct! Ratios represent relative proportions.' },
+        { id: 'b', text: 'Sides must be exactly 4 cm and 3 cm only', correct: false, feedback: 'Triangles with sides 8, 6 also have ratio 4/3.' }
+      ]
+    }
+  },
+  4: {
+    title: 'Find Hypotenuse AC (Pythagoras)',
+    summary: 'Pythagoras: $AC = \\sqrt{(3k)^2 + (4k)^2} = 5k$.',
+    promptSummary: 'Apply Pythagoras Theorem: $AC = \\sqrt{AB^2 + BC^2}$.',
+    quiz: {
+      question: 'Applying Pythagoras theorem, what is $AC$?',
+      options: [
+        { id: 'a', text: '$AC = 5k$', correct: true, feedback: 'Spot on! Forms standard $(3, 4, 5)$ triplet.' },
+        { id: 'b', text: '$AC = 7k$', correct: false, feedback: '$\\sqrt{9k^2 + 16k^2} = 5k$, not $3k + 4k$.' }
+      ]
+    }
+  },
+  5: {
+    title: 'Find sin A',
+    summary: '$\\sin A = \\dfrac{BC}{AC} = \\dfrac{4k}{5k} = \\dfrac{4}{5}$.',
+    quiz: null
+  },
+  6: {
+    title: 'Find cos A',
+    summary: '$\\cos A = \\dfrac{AB}{AC} = \\dfrac{3k}{5k} = \\dfrac{3}{5}$.',
+    quiz: null
+  },
+  7: {
+    title: 'Find cot A',
+    summary: 'Reciprocal of $\\tan A$: $\\cot A = \\dfrac{1}{\\tan A} = \\dfrac{3}{4}$.',
+    promptSummary: 'Reciprocal relation: $\\cot A = \\dfrac{1}{\\tan A}$.',
+    quiz: {
+      question: 'Since $\\tan A = \\dfrac{4}{3}$, what is $\\cot A$?',
+      options: [
+        { id: 'a', text: '$\\cot A = \\dfrac{3}{4}$', correct: true, feedback: 'Correct! Reciprocal of $4/3$ is $3/4$.' },
+        { id: 'b', text: '$\\cot A = \\dfrac{4}{5}$', correct: false, feedback: 'Reciprocal of $4/3$ is $3/4$.' }
+      ]
+    }
+  },
+  8: {
+    title: 'Find cosec A',
+    summary: 'Reciprocal of $\\sin A$: $\\operatorname{cosec} A = \\dfrac{1}{\\sin A} = \\dfrac{5}{4}$.',
+    quiz: null
+  },
+  9: {
+    title: 'Find sec A',
+    summary: 'Reciprocal of $\\cos A$: $\\sec A = \\dfrac{1}{\\cos A} = \\dfrac{5}{3}$.',
+    quiz: null
+  },
+  10: {
+    title: 'All Ratios Solved',
+    summary: 'All 5 remaining ratios for $\\angle A$ are determined and verified.',
+    quiz: null
+  }
+}
 
 /* ─────────── SVG TRIANGLE COORDINATES (Spacious & Big) ─────────── */
 const Ax = 65, Ay = 185
@@ -209,6 +382,11 @@ function AnimatedStepTriangle({
   ratioName,
   isCurrent = true
 }) {
+  // On Step 1 sub-step 1: Only title is shown, no triangle drawn yet
+  if (stepId === 1 && isCurrent && subStep === 1) {
+    return null
+  }
+
   const isBasic = stepId === 1
   const isGiven = stepId === 2
   const isAssignK = stepId === 3
@@ -221,60 +399,72 @@ function AnimatedStepTriangle({
   const isSummary = stepId === 10
 
   const hasK = stepId >= 3
-  const hypSolved = stepId >= 4 && (stepId > 4 || subStep >= 3)
+  const hypSolved = stepId >= 4 && (stepId > 4 || subStep >= 9)
 
-  const highlightOpp = isGiven || isAssignK || (isPyth && subStep < 3) || isSin || isCot || isCosec || isSummary
-  const highlightAdj = isGiven || isAssignK || (isPyth && subStep < 3) || isCos || isCot || isSec || isSummary
-  const highlightHyp = (isPyth && subStep >= 2) || isSin || isCos || isCosec || isSec || isSummary
+  const highlightOpp =
+    (isBasic && subStep >= 4) ||
+    (isGiven && (subStep === 4 || subStep >= 6)) ||
+    isAssignK ||
+    (isPyth && subStep >= 4) ||
+    (isSin && (subStep === 4 || subStep >= 6)) ||
+    (isCot && (subStep === 5 || subStep >= 6)) ||
+    (isCosec && (subStep === 5 || subStep >= 6)) ||
+    (isSummary && subStep >= 3)
 
-  // Dynamic Animated Badge Text corresponding to the exact current sub-step
-  let calloutText = ''
-  let badgeBg = '#e0f2fe'
-  let badgeColor = '#0369a1'
+  const highlightAdj =
+    (isBasic && subStep >= 5) ||
+    (isGiven && (subStep === 5 || subStep >= 6)) ||
+    isAssignK ||
+    (isPyth && subStep >= 4) ||
+    (isCos && (subStep === 4 || subStep >= 6)) ||
+    (isCot && (subStep === 4 || subStep >= 6)) ||
+    (isSec && (subStep === 5 || subStep >= 6)) ||
+    (isSummary && subStep >= 3)
 
-  if (stepId === 1) {
-    calloutText = subStep === 1 ? 'Right △ABC (∠B = 90°)' : '∠A : BC (opp), AB (adj), AC (hyp)'
-    badgeBg = '#d1fae5'
-    badgeColor = '#065f46'
-  } else if (stepId === 2) {
-    calloutText = subStep === 1 ? 'tan A = Opposite ÷ Adjacent' : 'tan A = BC ÷ AB = 4/3'
-    badgeBg = '#e0f2fe'
-    badgeColor = '#0369a1'
-  } else if (stepId === 3) {
-    calloutText = subStep === 1 ? 'BC ÷ AB = 4 ÷ 3' : 'BC = 4k  |  AB = 3k'
-    badgeBg = '#fef3c7'
-    badgeColor = '#b45309'
-  } else if (stepId === 4) {
-    calloutText = subStep === 1 ? 'AC² = AB² + BC²' : (subStep === 2 ? 'AC² = 25k²' : 'AC = 5k (Hypotenuse)')
-    badgeBg = '#ede9fe'
-    badgeColor = '#5b21b6'
-  } else if (isSin) {
-    calloutText = subStep === 1 ? 'sin A = BC ÷ AC' : (subStep === 2 ? 'sin A = 4k ÷ 5k' : 'sin A = 4/5')
-    badgeBg = '#e0f2fe'
-    badgeColor = '#0369a1'
-  } else if (isCos) {
-    calloutText = subStep === 1 ? 'cos A = AB ÷ AC' : (subStep === 2 ? 'cos A = 3k ÷ 5k' : 'cos A = 3/5')
-    badgeBg = '#d1fae5'
-    badgeColor = '#047857'
-  } else if (isCot) {
-    calloutText = subStep === 1 ? 'cot A = AB ÷ BC' : 'cot A = 3k ÷ 4k = 3/4'
-    badgeBg = '#fce7f3'
-    badgeColor = '#9d174d'
-  } else if (isCosec) {
-    calloutText = subStep === 1 ? 'cosec A = AC ÷ BC' : 'cosec A = 5k ÷ 4k = 5/4'
-    badgeBg = '#ede9fe'
-    badgeColor = '#6d28d9'
-  } else if (isSec) {
-    calloutText = subStep === 1 ? 'sec A = AC ÷ AB' : (subStep === 2 ? 'sec A = 5k ÷ 3k' : 'sec A = 5/3')
-    badgeBg = '#ffe4e6'
-    badgeColor = '#be123c'
-  } else if (isSummary) {
-    calloutText = 'All 6 Ratios Solved'
-    badgeBg = '#dcfce7'
-    badgeColor = '#15803d'
+  const highlightHyp =
+    (isBasic && subStep >= 6) ||
+    (isPyth && subStep >= 4) ||
+    (isSin && (subStep === 5 || subStep >= 6)) ||
+    (isCos && (subStep === 5 || subStep >= 6)) ||
+    (isCosec && (subStep === 4 || subStep >= 6)) ||
+    (isSec && (subStep === 4 || subStep >= 6)) ||
+    (isSummary && subStep >= 3)
+
+  const isRatioStep = isSin || isCos || isCot || isCosec || isSec
+
+  let adjOpacity = 1
+  let oppOpacity = 1
+  let hypOpacity = 1
+
+  if (isRatioStep) {
+    if (subStep <= 3) {
+      adjOpacity = 1
+      oppOpacity = 1
+      hypOpacity = 1
+    } else if (subStep === 4 || subStep === 5) {
+      adjOpacity = highlightAdj ? 1 : 0.35
+      oppOpacity = highlightOpp ? 1 : 0.35
+      hypOpacity = highlightHyp ? 1 : 0.35
+    } else {
+      adjOpacity = highlightAdj ? 1 : 0.22
+      oppOpacity = highlightOpp ? 1 : 0.22
+      hypOpacity = highlightHyp ? 1 : 0.22
+    }
+  } else if (isGiven) {
+    if (subStep <= 3) {
+      adjOpacity = 1
+      oppOpacity = 1
+      hypOpacity = 1
+    } else if (subStep === 4 || subStep === 5) {
+      adjOpacity = highlightAdj ? 1 : 0.35
+      oppOpacity = highlightOpp ? 1 : 0.35
+      hypOpacity = 1
+    } else {
+      adjOpacity = 1
+      oppOpacity = 1
+      hypOpacity = 1
+    }
   }
-
-  const calloutWidth = Math.max(160, calloutText.length * 8.6 + 32)
 
   return (
     <div style={{
@@ -284,33 +474,8 @@ function AnimatedStepTriangle({
       alignItems: 'center',
       width: '100%',
       position: 'relative',
-      margin: '0.8rem 0 1.2rem'
+      margin: '0.2rem 0 0.8rem'
     }}>
-      {/* Visual Animated Callout Badge (Cleanly placed ABOVE diagram - ZERO overlap with vertex C or lines) */}
-      {calloutText && (
-        <div
-          className={isCurrent ? 'e1-pop' : ''}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '5px 18px',
-            borderRadius: '20px',
-            background: badgeBg,
-            border: `1.5px solid ${badgeColor}`,
-            color: badgeColor,
-            fontSize: '0.88rem',
-            fontWeight: 800,
-            fontFamily: 'Inter',
-            marginBottom: '0.6rem',
-            letterSpacing: '0.02em',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.03)'
-          }}
-        >
-          {calloutText}
-        </div>
-      )}
-
       <svg
         viewBox="0 0 380 230"
         style={{
@@ -349,49 +514,33 @@ function AnimatedStepTriangle({
         {/* Base AB (Adjacent) */}
         <line
           x1={Ax} y1={Ay} x2={Bx} y2={By}
-          stroke={highlightAdj ? COLOR_ADJ : (isBasic ? '#334155' : COLOR_MUTED)}
+          stroke={highlightAdj ? COLOR_ADJ : (isBasic ? '#334155' : '#475569')}
           strokeWidth={highlightAdj ? 4 : 2.6}
           strokeLinecap="round"
-          className={isCurrent ? 'e1-draw' : ''}
+          opacity={adjOpacity}
+          style={{ transition: 'all 0.3s ease' }}
         />
 
         {/* Perpendicular BC (Opposite) */}
         <line
           x1={Bx} y1={By} x2={Cx} y2={Cy}
-          stroke={highlightOpp ? COLOR_OPP : (isBasic ? '#334155' : COLOR_MUTED)}
+          stroke={highlightOpp ? COLOR_OPP : (isBasic ? '#334155' : '#475569')}
           strokeWidth={highlightOpp ? 4 : 2.6}
           strokeLinecap="round"
-          className={isCurrent ? 'e1-draw' : ''}
-          style={{ animationDelay: '0.12s' }}
+          opacity={oppOpacity}
+          style={{ transition: 'all 0.3s ease' }}
         />
 
         {/* Hypotenuse AC */}
         <line
           x1={Ax} y1={Ay} x2={Cx} y2={Cy}
-          stroke={hypSolved ? (highlightHyp ? COLOR_HYP : COLOR_MUTED) : (highlightHyp ? COLOR_HYP : '#94a3b8')}
+          stroke={hypSolved ? (highlightHyp ? COLOR_HYP : '#475569') : (highlightHyp ? COLOR_HYP : '#94a3b8')}
           strokeWidth={highlightHyp && hypSolved ? 4 : 2.6}
           strokeLinecap="round"
           strokeDasharray={hypSolved ? 'none' : '6 4'}
-          className={isCurrent && hypSolved ? 'e1-draw' : ''}
-          style={{ animationDelay: '0.24s' }}
+          opacity={hypOpacity}
+          style={{ transition: 'all 0.3s ease' }}
         />
-
-        {/* Animated Particles flowing on highlighted sides */}
-        {highlightAdj && isCurrent && (
-          <circle r="4" fill={COLOR_ADJ}>
-            <animateMotion dur="1.8s" repeatCount="indefinite" path={`M${Ax} ${Ay} L${Bx} ${By}`} />
-          </circle>
-        )}
-        {highlightOpp && isCurrent && (
-          <circle r="4" fill={COLOR_OPP}>
-            <animateMotion dur="1.8s" repeatCount="indefinite" path={`M${Bx} ${By} L${Cx} ${Cy}`} />
-          </circle>
-        )}
-        {highlightHyp && isCurrent && (
-          <circle r="4" fill={COLOR_HYP}>
-            <animateMotion dur="2.2s" repeatCount="indefinite" path={`M${Ax} ${Ay} L${Cx} ${Cy}`} />
-          </circle>
-        )}
 
         {/* Right Angle Symbol at B */}
         <rect
@@ -400,77 +549,168 @@ function AnimatedStepTriangle({
           fill="#ffffff"
           stroke="#0284c7"
           strokeWidth="1.8"
-          className={isCurrent ? 'e1-pop' : ''}
         />
 
-        {/* Vertex Dots */}
-        <circle cx={Ax} cy={Ay} r="5" fill="#0284c7" className={isCurrent ? 'e1-pop' : ''} />
-        <circle cx={Bx} cy={By} r="5" fill="#0284c7" className={isCurrent ? 'e1-pop' : ''} />
-        <circle cx={Cx} cy={Cy} r="5" fill="#0284c7" className={isCurrent ? 'e1-pop' : ''} />
+        {/* Vertex Dots - Clean, stable & beautifully anchored (Zero jerk/jump) */}
+        <circle cx={Ax} cy={Ay} r="5.5" fill="#0284c7" stroke="#ffffff" strokeWidth="1.5" />
+        <circle cx={Bx} cy={By} r="5.5" fill="#0284c7" stroke="#ffffff" strokeWidth="1.5" />
+        <circle cx={Cx} cy={Cy} r="5.5" fill="#0284c7" stroke="#ffffff" strokeWidth="1.5" />
 
         {/* Vertex Labels */}
-        <text x={Ax - 20} y={Ay + 6} fill="#0f172a" fontSize="16" fontWeight="900" fontFamily="Inter">A</text>
-        <text x={Bx + 10} y={By + 6} fill="#0f172a" fontSize="13.5" fontWeight="800" fontFamily="Inter">B (90°)</text>
-        <text x={Cx + 10} y={Cy + 6} fill="#0f172a" fontSize="16" fontWeight="900" fontFamily="Inter">C</text>
+        <text x={Ax - 22} y={Ay + 6} fill="#0f172a" fontSize="17.5" fontWeight="900" fontFamily="Inter">A</text>
+        <text x={Bx + 10} y={By + 6} fill="#0f172a" fontSize="15" fontWeight="800" fontFamily="Inter">B (90°)</text>
+        <text x={Cx + 10} y={Cy + 6} fill="#0f172a" fontSize="17.5" fontWeight="900" fontFamily="Inter">C</text>
 
         {/* Angle A Arc */}
         <path
           d={`M${Ax + 28} ${Ay} A28 28 0 0 0 ${Ax + 28 * Math.cos(0.66)} ${Ay - 28 * Math.sin(0.66)}`}
           fill="none"
           stroke="#d97706"
-          strokeWidth="2.2"
-          className={isCurrent ? 'e1-pop' : ''}
+          strokeWidth="2.4"
         />
-        <text x={Ax + 36} y={Ay - 8} fill="#d97706" fontSize="13" fontWeight="800" fontFamily="Inter">∠A</text>
+        <text x={Ax + 36} y={Ay - 8} fill="#d97706" fontSize="14.5" fontWeight="800" fontFamily="Inter">∠A</text>
 
         {/* Side AB Label */}
         <text
-          x={(Ax + Bx) / 2} y={Ay + 24}
-          fill={highlightAdj ? COLOR_ADJ : '#475569'}
-          fontSize="13" fontWeight="700" textAnchor="middle" fontFamily="Inter"
+          x={(Ax + Bx) / 2} y={Ay + 25}
+          fill={highlightAdj ? COLOR_ADJ : '#0f172a'}
+          fontSize="14.5" fontWeight="800" textAnchor="middle" fontFamily="Inter"
+          opacity={adjOpacity}
+          style={{ transition: 'all 0.3s ease' }}
         >
-          {isBasic ? 'AB (adjacent side)' : (hasK ? 'AB = 3k (adj)' : 'AB (adjacent side)')}
+          {isBasic
+            ? (subStep >= 5 ? 'AB (adjacent side)' : 'Side AB')
+            : (stepId > 3 || (isAssignK && subStep >= 6)
+                ? 'AB = 3k (adj)'
+                : (isGiven ? (subStep >= 5 ? 'AB (adjacent side)' : 'Side AB') : 'AB (adjacent side)'))}
         </text>
 
         {/* Side BC Label */}
         <text
           x={Bx + 12} y={(By + Cy) / 2}
-          fill={highlightOpp ? COLOR_OPP : '#475569'}
-          fontSize="13" fontWeight="700" dominantBaseline="middle" fontFamily="Inter"
+          fill={highlightOpp ? COLOR_OPP : '#0f172a'}
+          fontSize="14.5" fontWeight="800" dominantBaseline="middle" fontFamily="Inter"
+          opacity={oppOpacity}
+          style={{ transition: 'all 0.3s ease' }}
         >
-          {isBasic ? 'BC (opposite side)' : (hasK ? 'BC = 4k (opp)' : 'BC (opposite side)')}
+          {isBasic
+            ? (subStep >= 4 ? 'BC (opposite side)' : 'Side BC')
+            : (stepId > 3 || (isAssignK && subStep >= 5)
+                ? 'BC = 4k (opp)'
+                : (isGiven ? (subStep >= 4 ? 'BC (opposite side)' : 'Side BC') : 'BC (opposite side)'))}
         </text>
 
-        {/* Side AC Label (Generous clearance from top-left badge) */}
+        {/* Side AC Label */}
         <text
           x={HypLabelX} y={HypLabelY}
-          fill={hypSolved ? (highlightHyp ? COLOR_HYP : '#475569') : '#94a3b8'}
-          fontSize="13" fontWeight="700" textAnchor="middle" fontFamily="Inter"
+          fill={hypSolved ? (highlightHyp ? COLOR_HYP : '#0f172a') : (isBasic && subStep >= 6 ? COLOR_HYP : '#64748b')}
+          fontSize="14.5" fontWeight="800" textAnchor="middle" fontFamily="Inter"
           transform={`rotate(${HYP_ANGLE}, ${HypLabelX}, ${HypLabelY})`}
           stroke="#ffffff" strokeWidth="3" paintOrder="stroke"
+          opacity={hypOpacity}
+          style={{ transition: 'all 0.3s ease' }}
         >
-          {hypSolved ? 'AC = 5k (hyp)' : 'AC = ? (hyp)'}
+          {isBasic
+            ? (subStep >= 6 ? 'AC (hypotenuse)' : 'Side AC')
+            : (hypSolved ? 'AC = 5k (hyp)' : 'AC = ? (hyp)')}
         </text>
       </svg>
     </div>
   )
 }
 
+/* ─────────── TYPEWRITER ANIMATED MATH LINE ─────────── */
+function TypewriterMathLine({ text, isLatest = false, isCurrent = true }) {
+  const [isTyping, setIsTyping] = useState(isLatest && isCurrent)
+
+  useEffect(() => {
+    if (isLatest && isCurrent) {
+      setIsTyping(true)
+      const timer = setTimeout(() => {
+        setIsTyping(false)
+      }, 850)
+      return () => clearTimeout(timer)
+    } else {
+      setIsTyping(false)
+    }
+  }, [text, isLatest, isCurrent])
+
+  return (
+    <div
+      className="e1-math-line"
+      style={{
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        whiteSpace: 'nowrap',
+        overflow: 'visible',
+        padding: '0.15rem 0',
+        fontFamily: '"Inter", sans-serif',
+        color: '#0f172a'
+      }}
+    >
+      <div
+        className={isTyping ? 'e1-typewriter' : ''}
+        style={{
+          display: 'inline-block',
+          whiteSpace: 'nowrap',
+          fontFamily: '"Inter", sans-serif',
+          color: '#0f172a'
+        }}
+      >
+        <MathText
+          text={`$${text}$`}
+          style={{ whiteSpace: 'nowrap', display: 'inline-block', fontFamily: '"Inter", sans-serif', color: '#0f172a' }}
+        />
+      </div>
+    </div>
+  )
+}
+
 /* ─────────── MAIN COMPONENT ─────────── */
-export default function Example1Tutor({ onNextExample, onPrevExample, hasPrev = true, hasNext = true }) {
+export default function Example1Tutor({ onNextExample, onPrevExample, hasPrev = true, hasNext = true, initialAtEnd = false }) {
   const total = STEPS.length
-  const [step, setStep] = useState(1)
-  const [subStep, setSubStep] = useState(1)
+  const lastStepObj = STEPS[total - 1]
+  const lastStepTotalSubSteps = 2 + lastStepObj.mathLines.length
+
+  const [step, setStep] = useState(initialAtEnd ? total : 0)
+  const [subStep, setSubStep] = useState(initialAtEnd ? lastStepTotalSubSteps : 0)
+  const [selectedOptions, setSelectedOptions] = useState({})
   const clickTimer = useRef(null)
   const scrollContainerRef = useRef(null)
   const rightScrollContainerRef = useRef(null)
+  const hasFiredConfetti = useRef(false)
 
-  const currentStepObj = STEPS[step - 1] || STEPS[0]
-  const currentTotalLines = currentStepObj.mathLines.length
+  const currentStepObj = step > 0 ? (STEPS[step - 1] || STEPS[0]) : null
+  const currentTotalSubSteps = currentStepObj ? (2 + currentStepObj.mathLines.length) : 0
+
+  // Scroll to Step 10 (or bottom) immediately if starting at end
+  useEffect(() => {
+    if (initialAtEnd) {
+      setTimeout(() => {
+        const container = scrollContainerRef.current
+        if (container) {
+          const step10 = container.querySelector(`[data-step="10"]`)
+          if (step10) {
+            step10.scrollIntoView({ behavior: 'auto', block: 'start' })
+          } else {
+            container.scrollTop = container.scrollHeight
+          }
+        }
+        const rightContainer = rightScrollContainerRef.current
+        if (rightContainer) {
+          const rightStep10 = rightContainer.querySelector(`[data-right-step="10"]`)
+          if (rightStep10) {
+            rightStep10.scrollIntoView({ behavior: 'auto', block: 'nearest' })
+          }
+        }
+      }, 90)
+    }
+  }, [initialAtEnd])
 
   // Auto-scroll the active step card into view on the right pane
   useEffect(() => {
-    if (!rightScrollContainerRef.current) return
+    if (step === 0 || !rightScrollContainerRef.current) return
     const el = rightScrollContainerRef.current.querySelector(`[data-right-step="${step}"]`)
     if (el) {
       setTimeout(() => {
@@ -479,10 +719,64 @@ export default function Example1Tutor({ onNextExample, onPrevExample, hasPrev = 
     }
   }, [step])
 
+  // Fire celebratory confetti ONLY when the very last sub-step of the final step (Step 10) is fully completed!
+  useEffect(() => {
+    if (step === total && subStep >= currentTotalSubSteps && !hasFiredConfetti.current && !initialAtEnd) {
+      hasFiredConfetti.current = true
+      confetti({
+        particleCount: 90,
+        spread: 75,
+        origin: { y: 0.6 }
+      })
+    }
+    // Reset confetti trigger if user steps backwards to earlier steps
+    if (step < total) {
+      hasFiredConfetti.current = false
+    }
+  }, [step, subStep, total, currentTotalSubSteps, initialAtEnd])
+
+  // Single click progresses one micro-step at a time; when sub-steps complete, goes to next step!
+  const goNextStep = () => {
+    if (step === 0) {
+      setStep(1)
+      setSubStep(1)
+      return
+    }
+    if (subStep < currentTotalSubSteps) {
+      setSubStep(s => s + 1)
+    } else if (step < total) {
+      setStep(s => s + 1)
+      setSubStep(1)
+    } else if (hasNext && onNextExample) {
+      onNextExample()
+    }
+  }
+
+  // Backwards navigation steps back one micro-step at a time
+  const goPrevStep = () => {
+    if (step === 0) {
+      if (hasPrev && onPrevExample) {
+        onPrevExample()
+      }
+      return
+    }
+    if (subStep > 1) {
+      setSubStep(s => s - 1)
+    } else if (step === 1 && subStep === 1) {
+      setStep(0)
+      setSubStep(0)
+    } else if (step > 1) {
+      const prevStepNum = step - 1
+      const prevTotalSubSteps = 2 + STEPS[prevStepNum - 1].mathLines.length
+      setStep(s => s - 1)
+      setSubStep(prevTotalSubSteps)
+    }
+  }
+
   // Keyboard navigation: Left / Right arrow keys
   useEffect(() => {
     const handleKey = (e) => {
-      if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || (e.key === ' ' && step === 0)) {
         e.preventDefault()
         goNextStep()
       }
@@ -495,59 +789,47 @@ export default function Example1Tutor({ onNextExample, onPrevExample, hasPrev = 
     return () => window.removeEventListener('keydown', handleKey)
   })
 
-  // Smoothly scroll the newly revealed step or line into view
+  // Smoothly auto-scroll so the current step and any newly revealed math lines are always visible
   useEffect(() => {
-    if (!scrollContainerRef.current) return
-    const el = scrollContainerRef.current.querySelector(`[data-step="${step}"]`)
-    if (el) {
-      setTimeout(() => {
-        el.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-      }, 70)
+    if (step === 0 || !scrollContainerRef.current) return
+    const container = scrollContainerRef.current
+
+    if (subStep <= 2) {
+      const el = container.querySelector(`[data-step="${step}"]`)
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }, 50)
+      }
+    } else {
+      const latestLine = container.querySelector(`[data-latest-line="true"]`)
+      if (latestLine) {
+        setTimeout(() => {
+          latestLine.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+        }, 50)
+      }
     }
   }, [step, subStep])
-
-  // Single click progresses one line at a time; when lines complete, goes to next step!
-  const goNextStep = () => {
-    if (subStep < currentTotalLines) {
-      setSubStep(s => s + 1)
-    } else if (step < total) {
-      setStep(s => s + 1)
-      setSubStep(1)
-    } else if (hasNext && onNextExample) {
-      onNextExample()
-    }
-  }
-
-  // Backwards navigation steps back one line at a time
-  const goPrevStep = () => {
-    if (subStep > 1) {
-      setSubStep(s => s - 1)
-    } else if (step > 1) {
-      const prevTotalLines = STEPS[step - 2].mathLines.length
-      setStep(s => s - 1)
-      setSubStep(prevTotalLines)
-    } else if (hasPrev && onPrevExample) {
-      onPrevExample()
-    }
-  }
 
   // Single click = Next sub-step, Double click = Previous sub-step
   const handleContainerClick = (e) => {
     if (e.target.closest('button, a, input, select, [data-noclick]')) return
 
-    const selection = window.getSelection()?.toString()
-    if (selection && selection.length > 0) return
-
-    if (clickTimer.current) {
-      clearTimeout(clickTimer.current)
-      clickTimer.current = null
-      goPrevStep()
-    } else {
-      clickTimer.current = setTimeout(() => {
+    // Double click detected: either browser e.detail >= 2 or second click within 300ms window
+    if (e.detail >= 2 || clickTimer.current) {
+      if (clickTimer.current) {
+        clearTimeout(clickTimer.current)
         clickTimer.current = null
-        goNextStep()
-      }, 250)
+      }
+      window.getSelection()?.removeAllRanges?.()
+      goPrevStep()
+      return
     }
+
+    clickTimer.current = setTimeout(() => {
+      clickTimer.current = null
+      goNextStep()
+    }, 300)
   }
 
   return (
@@ -559,6 +841,7 @@ export default function Example1Tutor({ onNextExample, onPrevExample, hasPrev = 
         height: 'calc(100vh - 106px)',
         overflow: 'hidden',
         cursor: 'pointer',
+        userSelect: 'none',
         background: '#ffffff'
       }}
     >
@@ -577,7 +860,8 @@ export default function Example1Tutor({ onNextExample, onPrevExample, hasPrev = 
           minWidth: 0,
           background: '#ffffff',
           overflow: 'hidden',
-          position: 'relative'
+          position: 'relative',
+          fontFamily: '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
         }}
       >
         {/* Scrollable Progressive Steps Workspace */}
@@ -586,7 +870,7 @@ export default function Example1Tutor({ onNextExample, onPrevExample, hasPrev = 
           style={{
             flex: 1,
             overflowY: 'auto',
-            padding: '2.5rem 3rem 6rem',
+            padding: '2.5rem 1.8rem 6rem',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
@@ -594,120 +878,475 @@ export default function Example1Tutor({ onNextExample, onPrevExample, hasPrev = 
             scrollBehavior: 'smooth'
           }}
         >
-          <div style={{ width: '100%', maxWidth: '760px' }}>
-            {STEPS.slice(0, step).map((s, idx) => {
-              const isCurrent = idx === step - 1
-              const visibleLines = isCurrent ? s.mathLines.slice(0, subStep) : s.mathLines
+          {step === 0 ? null : (
+            <div style={{ width: '100%', maxWidth: '820px' }}>
+              {STEPS.slice(0, step).map((s, idx) => {
+                const isCurrent = idx === step - 1
+                const showDiagram = !isCurrent || subStep >= 2
+                const visibleLines = isCurrent
+                  ? s.mathLines.slice(0, Math.max(0, subStep - 2))
+                  : s.mathLines
 
-              return (
-                <div
-                  key={s.id}
-                  data-step={s.id}
-                  className={isCurrent ? 'e1-fade' : ''}
-                  style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    textAlign: 'center',
-                    marginBottom: '3rem',
-                    paddingBottom: '2.5rem',
-                    borderBottom: idx < step - 1 ? '1px dashed #e2e8f0' : 'none',
-                    opacity: isCurrent ? 1 : 0.82,
-                    transition: 'all 0.25s ease'
-                  }}
-                >
-                  {/* Step Header */}
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '12px',
-                    marginBottom: '0.8rem'
-                  }}>
-                    <span style={{
-                      fontSize: '0.82rem',
-                      fontWeight: 800,
-                      letterSpacing: '0.06em',
-                      textTransform: 'uppercase',
-                      color: s.badgeColor,
-                      background: s.badgeBg,
-                      borderRadius: '6px',
-                      padding: '4px 14px'
+                return (
+                  <div
+                    key={s.id}
+                    data-step={s.id}
+                    className={isCurrent ? 'e1-fade' : ''}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      textAlign: 'center',
+                      marginBottom: '2.8rem',
+                      paddingBottom: '0.8rem',
+                      borderBottom: 'none',
+                      opacity: 1,
+                      transition: 'opacity 0.3s ease',
+                      scrollMarginTop: '1.2rem',
+                      scrollMarginBottom: '2.5rem'
+                    }}
+                  >
+                    {/* Step Header */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginBottom: '0.9rem'
                     }}>
-                      {s.badge}
-                    </span>
-                    <span style={{
-                      fontSize: '1.38rem',
-                      fontWeight: 800,
-                      color: isCurrent ? '#0f172a' : '#475569'
-                    }}>
-                      {s.title}
-                    </span>
-                  </div>
+                      <span style={{
+                        fontSize: '1.58rem',
+                        fontWeight: 800,
+                        color: '#0f172a',
+                        letterSpacing: '-0.02em',
+                        fontFamily: '"Inter", sans-serif'
+                      }}>
+                        {s.title}
+                      </span>
+                    </div>
 
-                  {/* Step Diagram (Big, Prominent, Live Motion Animations) */}
-                  <AnimatedStepTriangle
-                    stepId={s.id}
-                    subStep={isCurrent ? subStep : s.mathLines.length}
-                    ratioName={s.ratioName}
-                    isCurrent={isCurrent}
-                  />
-
-                  {/* Mathematical Solution Lines (Unfolds line by line on each click!) */}
-                  <div style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    gap: '0.75rem',
-                    marginTop: '0.4rem',
-                    width: '100%'
-                  }}>
-                    {visibleLines.map((line, lIdx) => (
-                      <div
-                        key={lIdx}
-                        className="e1-fade"
-                        style={{
-                          fontSize: isCurrent ? '1.42rem' : '1.22rem',
-                          color: '#0f172a',
-                          fontWeight: isCurrent ? 600 : 500,
-                          lineHeight: 1.85,
-                          textAlign: 'center'
-                        }}
-                      >
-                        <MathText text={`$${line}$`} />
+                    {/* Step Diagram (Big, Prominent, Live Motion Animations) */}
+                    {showDiagram && (
+                      <div className={isCurrent && subStep === 2 ? 'e1-fade' : ''} style={{ width: '100%' }}>
+                        <AnimatedStepTriangle
+                          stepId={s.id}
+                          subStep={isCurrent ? subStep : (2 + s.mathLines.length)}
+                          ratioName={s.ratioName}
+                          isCurrent={isCurrent}
+                        />
                       </div>
-                    ))}
-                  </div>
+                    )}
+
+                    {/* Mathematical Solution Lines (Unfolds line by line with Typewriter effect!) */}
+                    {visibleLines.length > 0 && (
+                      <div style={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: '1.25rem',
+                        marginTop: '1.05rem',
+                        width: '100%',
+                        maxWidth: '100%'
+                      }}>
+                        {visibleLines.map((line, lIdx) => {
+                          const isLatest = isCurrent && lIdx === visibleLines.length - 1
+
+                          return (
+                            <div
+                              key={lIdx}
+                              data-latest-line={isLatest ? "true" : undefined}
+                              style={{
+                                fontSize: '1.42rem',
+                                color: '#0f172a',
+                                fontWeight: 600,
+                                lineHeight: 1.95,
+                                textAlign: 'center',
+                                width: '100%',
+                                whiteSpace: 'nowrap',
+                                letterSpacing: '0.01em',
+                                display: 'flex',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                padding: '0.15rem 0',
+                                scrollMarginBottom: '2.5rem',
+                                fontFamily: '"Inter", sans-serif'
+                              }}
+                            >
+                              <TypewriterMathLine
+                                text={line}
+                                isLatest={isLatest}
+                                isCurrent={isCurrent}
+                              />
+                            </div>
+                        )
+                      })}
+                    </div>
+                  )}
                 </div>
-              )
-            })}
-          </div>
+                )
+              })}
+            </div>
+          )}
         </div>
       </div>
 
       {/* ══════════════════════════════════════════════════════════════════
-          PART 2 (RIGHT PANE): QUESTION DISPLAY & CONTROLS
+          PART 2 (RIGHT PANE): PROGRESSIVE STEP-BY-STEP EXPLANATION
           ══════════════════════════════════════════════════════════════════ */}
       <div
+        ref={rightScrollContainerRef}
         className="right-pane"
         style={{
-          flex: 0.85,
-          padding: '2.5rem 3rem',
+          flex: 0.95,
+          padding: '2.5rem 2.8rem 6rem',
           display: 'flex',
           flexDirection: 'column',
-          gap: '1.5rem',
+          gap: '1.75rem',
           overflowY: 'auto',
           background: '#ffffff',
-          fontFamily: '"Inter", "Segoe UI", system-ui, -apple-system, sans-serif'
+          fontFamily: '"Inter", "Segoe UI", system-ui, -apple-system, sans-serif',
+          scrollBehavior: 'smooth'
         }}
       >
-        {/* Main Question Display - Right Pane is clean with only the question */}
+        {/* Main Problem Header */}
         <div style={{ margin: 0, fontSize: '1.32rem', lineHeight: '1.7', color: '#0f172a', fontWeight: '600' }}>
           <span style={{ color: '#0284c7', fontWeight: '800', marginRight: '10px' }}>
             Example 1 :
           </span>
           <MathText text={'Given $\\tan A = \\dfrac{4}{3}$, find the other trigonometric ratios of the angle A.'} />
         </div>
+
+        {/* Subtle Horizontal Divider */}
+        <div style={{ borderBottom: '1px solid #f1f5f9', margin: '0.1rem 0' }} />
+
+        {/* PROGRESSIVE TIMELINE OF ALL STEPS */}
+        {step === 0 ? null : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
+            {STEPS.slice(0, step).map((s, idx) => {
+              const stepNum = s.id
+              const isCurrent = stepNum === step
+            const isCompleted = stepNum < step
+            const details = STEP_DETAILS_EX1[stepNum] || { title: s.title, summary: '', quiz: null }
+            const quiz = details.quiz
+            const userChoice = selectedOptions[stepNum]
+            const selectedOpt = quiz?.options.find(o => o.id === userChoice)
+
+            return (
+              <motion.div
+                key={`right-step-${stepNum}`}
+                data-right-step={stepNum}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: isCurrent ? 1 : 0.85, y: 0 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                style={{
+                  display: 'flex',
+                  gap: '1rem',
+                  scrollMarginTop: '1.5rem',
+                  scrollMarginBottom: '3rem'
+                }}
+              >
+                {/* Step Marker */}
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  flexShrink: 0
+                }}>
+                  <motion.div
+                    animate={{
+                      scale: isCurrent ? [1, 1.05, 1] : 1
+                    }}
+                    transition={{ duration: 0.3 }}
+                    style={{
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '50%',
+                      background: isCompleted ? '#ecfdf5' : (isCurrent ? '#e0f2fe' : '#f1f5f9'),
+                      border: isCompleted ? '2px solid #10b981' : (isCurrent ? '2px solid #0284c7' : '2px solid #cbd5e1'),
+                      color: isCompleted ? '#059669' : (isCurrent ? '#0284c7' : '#64748b'),
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '0.8rem',
+                      fontWeight: 800,
+                      boxShadow: isCurrent ? '0 0 0 3px rgba(2, 132, 199, 0.18)' : 'none',
+                      transition: 'all 0.25s ease'
+                    }}
+                  >
+                    {isCompleted ? (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: 'spring', stiffness: 500, damping: 25 }}
+                      >
+                        <Check size={14} strokeWidth={3} />
+                      </motion.div>
+                    ) : stepNum}
+                  </motion.div>
+                  {idx < step - 1 && (
+                    <div style={{
+                      width: '2px',
+                      flex: 1,
+                      minHeight: '28px',
+                      background: '#e2e8f0',
+                      marginTop: '4px'
+                    }} />
+                  )}
+                </div>
+
+                {/* Step Body */}
+                <div style={{
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.65rem',
+                  paddingTop: '2px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{
+                      fontSize: '1.04rem',
+                      fontWeight: 800,
+                      color: isCurrent ? '#0f172a' : '#334155',
+                      letterSpacing: '-0.01em'
+                    }}>
+                      Step {stepNum} : {details.title}
+                    </div>
+                    {isCurrent && (
+                      <motion.span
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        style={{
+                          fontSize: '0.74rem',
+                          fontWeight: 700,
+                          color: '#0284c7',
+                          background: '#f0f9ff',
+                          padding: '2px 8px',
+                          borderRadius: '12px'
+                        }}
+                      >
+                        Active
+                      </motion.span>
+                    )}
+                  </div>
+
+                  {/* 1-2 Line Concise Mathematical Summary */}
+                  <div style={{
+                    fontSize: '1.02rem',
+                    color: '#334155',
+                    lineHeight: 1.65
+                  }}>
+                    <MathText text={
+                      (stepNum === 1 && isCurrent)
+                        ? (subStep === 1
+                            ? 'Understand requirement: Construct right-angled triangle $\\triangle ABC$.'
+                            : (subStep === 2
+                                ? 'Draw right $\\triangle ABC$ with right angle at $B$ ($\\angle B = 90^\\circ$).'
+                                : (subStep === 3
+                                    ? 'Identify Side $BC$: Side directly opposite to acute angle $\\angle A$.'
+                                    : (subStep === 4
+                                        ? 'Identify Side $AB$: Side adjacent/base to acute angle $\\angle A$.'
+                                        : 'Identify Side $AC$: Hypotenuse (longest side opposite to $90^\\circ$).'
+                                      )
+                                  )
+                              )
+                          )
+                        : (isCurrent && quiz && !userChoice && details.promptSummary
+                            ? details.promptSummary
+                            : details.summary)
+                    } />
+                  </div>
+
+                  {/* Optional Interactive Student Checkpoint Quiz (Non-blocking, no outer card box) */}
+                  {quiz && isCurrent && (
+                    <div
+                      data-noclick="true"
+                      style={{
+                        marginTop: '0.45rem',
+                        padding: '0',
+                        background: 'transparent',
+                        border: 'none',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '0.65rem'
+                      }}
+                    >
+                      <div style={{
+                        fontSize: '0.88rem',
+                        fontWeight: 700,
+                        color: '#0f172a',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}>
+                        <span style={{
+                          background: '#e0f2fe',
+                          color: '#0369a1',
+                          padding: '2px 7px',
+                          borderRadius: '6px',
+                          fontSize: '0.72rem',
+                          fontWeight: 800,
+                          letterSpacing: '0.04em',
+                          textTransform: 'uppercase'
+                        }}>
+                          Quick Check
+                        </span>
+                        <MathText text={quiz.question} />
+                      </div>
+
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        {quiz.options.map((opt) => {
+                          const isChosen = userChoice === opt.id
+                          const isCorrect = opt.correct
+
+                          let btnBg = '#ffffff'
+                          let btnBorder = '#cbd5e1'
+                          let btnColor = '#1e293b'
+
+                          if (isChosen) {
+                            if (isCorrect) {
+                              btnBg = '#ecfdf5'
+                              btnBorder = '#10b981'
+                              btnColor = '#065f46'
+                            } else {
+                              btnBg = '#fff1f2'
+                              btnBorder = '#f43f5e'
+                              btnColor = '#9f1239'
+                            }
+                          }
+
+                          return (
+                            <motion.button
+                              whileHover={{ scale: 1.015, x: 2 }}
+                              whileTap={{ scale: 0.985 }}
+                              key={opt.id}
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setSelectedOptions(prev => ({ ...prev, [stepNum]: opt.id }))
+                              }}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                padding: '0.55rem 0.85rem',
+                                borderRadius: '8px',
+                                border: `1.5px solid ${btnBorder}`,
+                                background: btnBg,
+                                color: btnColor,
+                                cursor: 'pointer',
+                                fontSize: '0.88rem',
+                                fontWeight: isChosen ? 700 : 500,
+                                textAlign: 'left',
+                                fontFamily: 'Inter',
+                                transition: 'all 0.15s ease'
+                              }}
+                            >
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '9px' }}>
+                                <span style={{
+                                  width: '22px',
+                                  height: '22px',
+                                  borderRadius: '50%',
+                                  background: isChosen ? (isCorrect ? '#10b981' : '#f43f5e') : '#e2e8f0',
+                                  color: isChosen ? '#ffffff' : '#64748b',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '0.76rem',
+                                  fontWeight: 800,
+                                  flexShrink: 0
+                                }}>
+                                  {opt.id.toUpperCase()}
+                                </span>
+                                <MathText text={opt.text} />
+                              </div>
+
+                              {isChosen && (
+                                isCorrect ? <CheckCircle2 size={18} color="#10b981" /> : <XCircle size={18} color="#f43f5e" />
+                              )}
+                            </motion.button>
+                          )
+                        })}
+                      </div>
+
+                      {/* Feedback */}
+                      {selectedOpt && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.95 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          style={{
+                            padding: '0.55rem 0.85rem',
+                            borderRadius: '8px',
+                            background: selectedOpt.correct ? '#ecfdf5' : '#fffbeb',
+                            border: selectedOpt.correct ? '1px solid #a7f3d0' : '1px solid #fef3c7',
+                            fontSize: '0.88rem',
+                            color: selectedOpt.correct ? '#065f46' : '#92400e',
+                            lineHeight: 1.45,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '8px'
+                          }}
+                        >
+                          <div>
+                            <strong>{selectedOpt.correct ? 'Correct:' : 'Note:'}</strong>{' '}
+                            <MathText text={selectedOpt.feedback} />
+                          </div>
+
+                          {!selectedOpt.correct && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setSelectedOptions(prev => {
+                                  const updated = { ...prev }
+                                  delete updated[stepNum]
+                                  return updated
+                                })
+                              }}
+                              title="Try Again"
+                              style={{
+                                border: 'none',
+                                background: 'transparent',
+                                color: '#b45309',
+                                padding: '2px 4px',
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                fontSize: '0.76rem',
+                                fontWeight: 700,
+                                textDecoration: 'underline',
+                                flexShrink: 0
+                              }}
+                            >
+                              <RotateCcw size={11} />
+                              Reset
+                            </button>
+                          )}
+                        </motion.div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* If a previous step had a quiz that was answered, show clean completed insight */}
+                  {isCompleted && quiz && selectedOpt && (
+                    <div style={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontSize: '0.88rem',
+                      color: selectedOpt.correct ? '#059669' : '#64748b',
+                      marginTop: '0.2rem'
+                    }}>
+                      <CheckCircle2 size={14} color="#059669" />
+                      <span>
+                        <strong>Answer:</strong> <MathText text={selectedOpt.text} />
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )
+          })}
+        </div>
+      )}
       </div>
     </div>
   )

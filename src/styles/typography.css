@@ -17,6 +17,21 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Ensure all interactive controls and headings use Inter */
+button, input, select, textarea, optgroup {
+  font-family: var(--font-family);
+}
+
+/* Ensure SVG text elements use Inter */
+svg text {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+}
+
+/* Preserve KaTeX mathematical font formatting */
+.katex, .katex * {
+  font-family: KaTeX_Main, KaTeX_Math, 'Times New Roman', serif !important;
+}
+
 /* Heading Hierarchy */
 h1, .h1 {
   font-family: var(--font-family);
@@ -94,3 +109,51 @@ p, .body-text {
   -webkit-text-fill-color: transparent;
   display: inline-block;
 }
+
+/* Ensure KaTeX inline formulas and text wrap gracefully without horizontal clipping */
+.math-formula-span {
+  max-width: 100%;
+}
+
+.katex .text {
+  white-space: normal !important;
+}
+
+/* Strict single-line guarantee for tutor mathematical derivation lines */
+[class*="-math-line"],
+[class*="-math-line"] *,
+[class*="-math-line"] .katex,
+[class*="-math-line"] .katex .text,
+[class*="-math-line"] .katex-base,
+[class*="-math-line"] .math-formula-span,
+[class*="-math-line"] .math-rendered-text {
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  overflow-wrap: normal !important;
+  text-wrap: nowrap !important;
+  flex-wrap: nowrap !important;
+}
+
+[class*="-math-line"],
+[class*="-math-line"] .katex {
+  color: #0f172a !important;
+}
+
+[class*="-math-line"] .katex .text {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+  font-weight: 600 !important;
+  color: #0f172a !important;
+}
+
+[class*="-math-line"] .katex-html {
+  display: inline-flex !important;
+  flex-wrap: nowrap !important;
+  align-items: baseline !important;
+  white-space: nowrap !important;
+}
+
+.math-rendered-text {
+  max-width: 100%;
+  overflow-wrap: break-word;
+}
+

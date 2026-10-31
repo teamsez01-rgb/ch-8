@@ -10,6 +10,7 @@ export default function App() {
   const [activeCenterTab, setActiveCenterTab] = useState('Interactive Tutor')
   const [activeRightTab, setActiveRightTab] = useState('Examples')
   const [activeExampleIndex, setActiveExampleIndex] = useState(0)
+  const [startAtEnd, setStartAtEnd] = useState(false)
   const [activeExercise, setActiveExercise] = useState('8.1')
   const [activeQuestionIndex, setActiveQuestionIndex] = useState(0)
   const [activeSubQuestionIndex, setActiveSubQuestionIndex] = useState(0)
@@ -30,6 +31,7 @@ export default function App() {
   // Next / Previous navigation handlers
   const handleNext = () => {
     if (activeRightTab === 'Examples') {
+      setStartAtEnd(false)
       if (activeExampleIndex < EXAMPLES.length - 1) {
         setActiveExampleIndex(i => i + 1)
       } else {
@@ -60,6 +62,7 @@ export default function App() {
   const handlePrev = () => {
     if (activeRightTab === 'Examples') {
       if (activeExampleIndex > 0) {
+        setStartAtEnd(true)
         setActiveExampleIndex(i => i - 1)
       }
     } else {
@@ -168,7 +171,10 @@ export default function App() {
               <button
                 key={ex.id}
                 className={`nav-btn ${activeExampleIndex === index ? 'active-dark' : ''}`}
-                onClick={() => setActiveExampleIndex(index)}
+                onClick={() => {
+                  setStartAtEnd(false)
+                  setActiveExampleIndex(index)
+                }}
               >
                 {ex.label}
               </button>
@@ -316,8 +322,11 @@ export default function App() {
 
       {activeCenterTab === 'Interactive Tutor' && activeRightTab === 'Examples' && (
         <TutorView
+          key={currentExample?.id}
           example={currentExample}
+          initialAtEnd={startAtEnd}
           onNextExample={() => {
+            setStartAtEnd(false)
             if (activeExampleIndex < EXAMPLES.length - 1) {
               setActiveExampleIndex(i => i + 1)
             } else {
@@ -329,6 +338,7 @@ export default function App() {
           }}
           onPrevExample={() => {
             if (activeExampleIndex > 0) {
+              setStartAtEnd(true)
               setActiveExampleIndex(i => i - 1)
             }
           }}

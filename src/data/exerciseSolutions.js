@@ -13,56 +13,96 @@ export const EXERCISE_SOLUTIONS = {
       '(i)': [
         {
           stepNum: 1,
-          title: 'Apply Pythagoras Theorem to find Hypotenuse AC',
+          title: 'Understand Given Values & Target',
+          lines: [
+            '\\textbf{Given in Question :} \\text{In } \\Delta ABC, \\angle B = 90^\\circ, \\text{ Leg } AB = 24\\text{ cm}, \\text{ and Leg } BC = 7\\text{ cm}',
+            '\\textbf{Target to Find :} \\sin A \\quad \\text{and} \\quad \\cos A',
+            '\\text{Strategy : To find ratios of angle } A, \\text{ we need all 3 sides. We must first find Hypotenuse } AC!'
+          ],
+          reason: 'Identify given triangle legs and determine that Hypotenuse $AC$ is required',
+          visual: null
+        },
+        {
+          stepNum: 2,
+          title: 'Construct Right Triangle ABC',
           lines: [
             'In right-angled triangle $\\Delta ABC$, right-angled at $B$:',
-            'Given: $AB = 24\\text{ cm}$ and $BC = 7\\text{ cm}$.',
-            'By Pythagoras Theorem:',
+            'Leg $AB = 24\\text{ cm}$ (base) and Leg $BC = 7\\text{ cm}$ (vertical height).',
+            'Hypotenuse $AC$ is currently unknown ($AC = ?$).'
+          ],
+          reason: 'Draw right $\\Delta ABC$ with right angle at $B$ and mark given sides',
+          visual: { type: 'triangle', opp: 7, adj: 24, hyp: '?', angle: 'A', highlight: 'all' }
+        },
+        {
+          stepNum: 3,
+          title: 'Apply Pythagoras Theorem to find Hypotenuse AC',
+          lines: [
+            '\\text{By Pythagoras Theorem in right } \\Delta ABC :',
             '$$AC^2 = AB^2 + BC^2$$',
             '$$AC^2 = (24)^2 + (7)^2 = 576 + 49 = 625$$',
             '$$AC = \\sqrt{625} = 25\\text{ cm}$$'
           ],
-          reason: 'Pythagoras Theorem: $AC^2 = AB^2 + BC^2$',
+          reason: 'Pythagoras Theorem: $AC = \\sqrt{AB^2 + BC^2} = 25\\text{ cm}$',
           visual: { type: 'triangle', opp: 7, adj: 24, hyp: 25, angle: 'A', highlight: 'hyp' }
         },
         {
-          stepNum: 2,
-          title: 'Calculate sin A and cos A',
+          stepNum: 4,
+          title: 'Calculate sin A',
           lines: [
-            'For angle $A$:',
-            '• $\\text{Opposite side} = BC = 7\\text{ cm}$',
-            '• $\\text{Adjacent side} = AB = 24\\text{ cm}$',
-            '• $\\text{Hypotenuse} = AC = 25\\text{ cm}$',
-            '$$\\sin A = \\frac{\\text{Opposite}}{\\text{Hypotenuse}} = \\frac{BC}{AC} = \\frac{7}{25}$$',
-            '$$\\cos A = \\frac{\\text{Adjacent}}{\\text{Hypotenuse}} = \\frac{AB}{AC} = \\frac{24}{25}$$'
+            'For acute reference angle $A$:',
+            '$$\\text{Opposite side} = BC = 7\\text{ cm}, \\quad \\text{Hypotenuse} = AC = 25\\text{ cm}$$',
+            '$$\\sin A = \\frac{\\text{Side opposite to } \\angle A}{\\text{Hypotenuse}} = \\frac{BC}{AC}$$',
+            '$$\\mathbf{\\sin A = \\frac{7}{25}}$$'
           ],
-          reason: 'Basic Trigonometric Ratios for angle $A$',
-          visual: { type: 'triangle', opp: 7, adj: 24, hyp: 25, angle: 'A', highlight: 'all' }
+          reason: '$\\sin A = \\dfrac{\\text{Opposite}}{\\text{Hypotenuse}} = \\dfrac{7}{25}$',
+          visual: { type: 'triangle', opp: 7, adj: 24, hyp: 25, angle: 'A', highlight: 'opp' }
+        },
+        {
+          stepNum: 5,
+          title: 'Calculate cos A',
+          lines: [
+            'For acute reference angle $A$:',
+            '$$\\text{Adjacent side} = AB = 24\\text{ cm}, \\quad \\text{Hypotenuse} = AC = 25\\text{ cm}$$',
+            '$$\\cos A = \\frac{\\text{Side adjacent to } \\angle A}{\\text{Hypotenuse}} = \\frac{AB}{AC}$$',
+            '$$\\mathbf{\\cos A = \\frac{24}{25}}$$'
+          ],
+          reason: '$\\cos A = \\dfrac{\\text{Adjacent}}{\\text{Hypotenuse}} = \\dfrac{24}{25}$',
+          visual: { type: 'triangle', opp: 7, adj: 24, hyp: 25, angle: 'A', highlight: 'adj' }
         }
       ],
       '(ii)': [
         {
           stepNum: 1,
-          title: 'Identify Sides with respect to Angle C',
+          title: 'Identify Sides with respect to Acute Angle C',
           lines: [
-            'In $\\Delta ABC$ right-angled at $B$, with $AC = 25\\text{ cm}$:',
-            'For angle $C$:',
-            '• $\\text{Opposite side} = AB = 24\\text{ cm}$',
-            '• $\\text{Adjacent side} = BC = 7\\text{ cm}$',
-            '• $\\text{Hypotenuse} = AC = 25\\text{ cm}$'
+            'In $\\Delta ABC$ right-angled at $B$, with known sides $AB = 24\\text{ cm}, BC = 7\\text{ cm}, AC = 25\\text{ cm}$:',
+            'When observing from acute reference angle $C$:',
+            '$$\\text{Side opposite to } \\angle C = AB = 24\\text{ cm}$$',
+            '$$\\text{Side adjacent to } \\angle C = BC = 7\\text{ cm}$$',
+            '$$\\text{Hypotenuse } = AC = 25\\text{ cm}$$'
           ],
-          reason: 'Opposite and Adjacent sides swap when looking from angle $C$',
+          reason: 'For angle $C$, opposite is $AB = 24\\text{ cm}$ and adjacent is $BC = 7\\text{ cm}$',
           visual: { type: 'triangle', opp: 24, adj: 7, hyp: 25, angle: 'C', highlight: 'all' }
         },
         {
           stepNum: 2,
-          title: 'Calculate sin C and cos C',
+          title: 'Calculate sin C',
           lines: [
-            '$$\\sin C = \\frac{\\text{Opposite}}{\\text{Hypotenuse}} = \\frac{AB}{AC} = \\frac{24}{25}$$',
-            '$$\\cos C = \\frac{\\text{Adjacent}}{\\text{Hypotenuse}} = \\frac{BC}{AC} = \\frac{7}{25}$$'
+            '$$\\sin C = \\frac{\\text{Side opposite to } \\angle C}{\\text{Hypotenuse}} = \\frac{AB}{AC}$$',
+            '$$\\mathbf{\\sin C = \\frac{24}{25}}$$'
           ],
-          reason: '$\\sin C = \\frac{\\text{opp}}{\\text{hyp}}, \\cos C = \\frac{\\text{adj}}{\\text{hyp}}$',
-          visual: { type: 'triangle', opp: 24, adj: 7, hyp: 25, angle: 'C', highlight: 'all' }
+          reason: '$\\sin C = \\dfrac{\\text{Opposite}}{\\text{Hypotenuse}} = \\dfrac{24}{25}$',
+          visual: { type: 'triangle', opp: 24, adj: 7, hyp: 25, angle: 'C', highlight: 'opp' }
+        },
+        {
+          stepNum: 3,
+          title: 'Calculate cos C',
+          lines: [
+            '$$\\cos C = \\frac{\\text{Side adjacent to } \\angle C}{\\text{Hypotenuse}} = \\frac{BC}{AC}$$',
+            '$$\\mathbf{\\cos C = \\frac{7}{25}}$$'
+          ],
+          reason: '$\\cos C = \\dfrac{\\text{Adjacent}}{\\text{Hypotenuse}} = \\dfrac{7}{25}$',
+          visual: { type: 'triangle', opp: 24, adj: 7, hyp: 25, angle: 'C', highlight: 'adj' }
         }
       ]
     },
